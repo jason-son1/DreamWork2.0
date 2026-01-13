@@ -171,14 +171,30 @@ public class ForgeProvider {
     }
 
     private boolean checkItem(ItemStack item, String idOrMaterial) {
-        // 드림 아이템 ID 먼저 체크
-        if (plugin.getItemManager().isItem(item, idOrMaterial))
+        // null 체크
+        if (item == null)
+            return false;
+
+        // 1. 드림 아이템 ID 체크 (NBT 기반)
+        if (plugin.getItemManager().isItem(item, idOrMaterial)) {
             return true;
-        // 바닐라 Material 체크
+        }
+
+        // 2. 바닐라 Material 체크 (단, 드림 아이템이 아닌 순수 아이템이어야 함 -> but for simple recipe
+        // matching, if name matches and it's not a specific other custom item, it might
+        // be fine.
+        // 하지만 기획 의도는 "커스텀 아이템 합금"이므로, 정확히 하기 위해선
+        // "요구사항이 Material인데, 들어온 아이템이 Custom Item이면 거절"하는 로직이 필요할 수 있음.
+        // 여기서는 유연하게 둘 다 체크하되, ItemManager.isItem이 실패하면 Material을 본다.
         try {
             Material m = Material.matchMaterial(idOrMaterial);
-            if (m != null && item.getType() == m)
-                return true;
+            if (m != null && item.getType() == m) {
+                // 만약 단순히 재료로 바닐라 돌을 요구했는데, 유저가 "전설의 돌(Custom)"을 넣었다면?
+                // 아까워서라도 안 쓰는게 맞지만, 시스템상으로는 구분해야 함.
+                // plugin.getItemManager().getDreamItemId(item) 이 null 이어야 순수 바닐라.
+                String currentId = plugin.getItemManager().getDreamItemId(item);
+                return currentId == null; // 커스텀 아이템이 아니어야 함
+            }
         } catch (Exception e) {
         }
         return false;

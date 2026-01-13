@@ -50,10 +50,10 @@ public class MinerListener implements Listener {
             return;
 
         Block block = event.getBlockPlaced();
-        // 광물인 경우에만 메타데이터 설정 (메모리 절약)
+        // 광물인 경우에만 영속적 데이터 저장
         String type = block.getType().name();
         if (type.contains("ORE") || type.contains("ANCIENT_DEBRIS")) {
-            block.setMetadata("dw_placed", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
+            plugin.getUserDataManager().recordPlacedBlock(block.getLocation());
         }
     }
 
@@ -61,6 +61,15 @@ public class MinerListener implements Listener {
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
         Block block = event.getBlock();
+
+        // 어뷰징 방지: 플레이어가 설치한 블록인지 확인
+        boolean isPlaced = plugin.getUserDataManager().isPlacedBlock(block.getLocation());
+
+        // 블록이 설치된 것이었다면 기록 제거 및 보상 미지급
+        if (isPlaced) {
+            plugin.getUserDataManager().removePlacedBlock(block.getLocation());
+            return;
+        }
 
         // 0. Towny 지역 확인 (남의 땅 채굴 방지)
         if (plugin.getTownyHook().isEnabled() && !plugin.getTownyHook().isInOwnTown(player, block.getLocation())) {

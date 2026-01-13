@@ -42,6 +42,7 @@ public class DreamWorkPlugin extends JavaPlugin {
     private ShopManager shopManager;
     private com.dreamwork.dialogue.DialogueManager dialogueManager;
     private com.dreamwork.job.BountyManager bountyManager;
+    private com.dreamwork.job.listener.hunter.TrapManager trapManager;
 
     // 외부 플러그인 Hook
     private VaultHook vaultHook;
@@ -117,6 +118,10 @@ public class DreamWorkPlugin extends JavaPlugin {
             // 11. 현상수배 매니저 초기화
             log(Level.INFO, "현상수배 시스템을 초기화하는 중...");
             bountyManager = new com.dreamwork.job.BountyManager(this);
+
+            // 12. 덫 매니저 초기화
+            log(Level.INFO, "덫 시스템을 초기화하는 중...");
+            trapManager = new com.dreamwork.job.listener.hunter.TrapManager(this);
 
             // 10. 이벤트 리스너 등록
             log(Level.INFO, "이벤트 리스너를 등록하는 중...");
@@ -211,7 +216,7 @@ public class DreamWorkPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(minerListener, this);
         Bukkit.getPluginManager().registerEvents(new FarmerListener(this), this);
         Bukkit.getPluginManager().registerEvents(new FisherListener(this), this);
-        Bukkit.getPluginManager().registerEvents(new HunterListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new HunterListener(this, trapManager), this);
         Bukkit.getPluginManager().registerEvents(new AdventurerListener(this), this);
 
         // 유저 데이터 이벤트

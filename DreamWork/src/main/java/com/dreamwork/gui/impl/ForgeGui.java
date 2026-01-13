@@ -162,11 +162,14 @@ public class ForgeGui extends DreamGui {
             return;
         }
 
-        // 결과창 확인
+        // 결과창 확인 (스택킹 지원)
         ItemStack currentOutput = inventory.getItem(ALLOY_OUTPUT);
         if (currentOutput != null && !currentOutput.getType().isAir()) {
-            player.sendMessage("§c결과 슬롯을 비워주세요.");
-            return;
+            // 미리 결과를 계산해서 비교해야 함 (provider.tryCreateAlloy는 확률 계산을 포함하므로 여기서 호출하면 안됨.
+            // 하지만 check만 하려면 result id를 알아야 함.
+            // 구조상 tryCreateAlloy가 결과를 뱉으므로, 일단 받고 나중에 처리?
+            // 아니면 여기서 미리 비워져있는지 체크하는 대신, 결과가 나왔을 때 병합 가능한지 체크하고 롤백?
+            // "롤백"은 복잡하므로, 일단 비워져있지 않으면 진행하되, 결과 나온 뒤 병합 시도하고 안되면 에러 출력.
         }
 
         // 제작 시도
@@ -178,7 +181,23 @@ public class ForgeGui extends DreamGui {
             return;
         }
 
-        // 성공
+        // 결과물 병합 체크
+        if (currentOutput != null && !currentOutput.getType().isAir()) {
+            if (currentOutput.isSimilar(result)) {
+                int max = currentOutput.getMaxStackSize();
+                if (currentOutput.getAmount() + result.getAmount() <= max) {
+                    result.setAmount(currentOutput.getAmount() + result.getAmount());
+                } else {
+                    player.sendMessage("§c결과 슬롯 공간이 부족합니다.");
+                    return; // 재료 소모 안 함
+                }
+            } else {
+                player.sendMessage("§c결과 슬롯을 비워주세요.");
+                return; // 재료 소모 안 함
+            }
+        }
+
+        // 성공 - 재료 소모
         input1.setAmount(input1.getAmount() - 1);
         input2.setAmount(input2.getAmount() - 1);
 

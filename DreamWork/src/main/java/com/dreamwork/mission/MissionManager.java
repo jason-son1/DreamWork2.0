@@ -41,6 +41,49 @@ public class MissionManager {
         missionCache.clear();
         missionCache.putAll(missionLoader.loadAllMissions());
         plugin.log(Level.INFO, "미션 " + missionCache.size() + "개 로드 완료");
+
+        startDailyScheduler();
+    }
+
+    private void startDailyScheduler() {
+        // 매분 검사 (정시에 리셋)
+        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            java.time.LocalTime now = java.time.LocalTime.now();
+            if (now.getHour() == 0 && now.getMinute() == 0) {
+                // 자정!
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    plugin.getServer().broadcastMessage("§e[!] §f일일 미션이 초기화되었습니다!");
+                    // 온라인 플레이어 리셋 로직 (필요 시 UserData 순회)
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        // UserData에서 DAILY 미션 상태 리셋 로직 호출 가능
+                        // 여기서는 메시지만 띄우고, UserData 로드 시 날짜 체크 로직에 의존하는 것이 성능상 좋음.
+                        try {
+                            com.dreamwork.core.UserData data = plugin.getUserDataManager().getUserData(p);
+                            java.util.Iterator<java.util.Map.Entry<String, com.dreamwork.mission.PlayerMissionData>> it = data
+                                    .getAllMissions().entrySet().iterator();
+
+                            while (it.hasNext()) {
+                                java.util.Map.Entry<String, com.dreamwork.mission.PlayerMissionData> entry = it.next();
+                                String missionId = entry.getKey();
+                                MissionTemplate template = missionCache.get(missionId);
+
+                                if (template != null && "DAILY".equalsIgnoreCase(template.getResetCycle())) {
+                                    // data.resetMission(missionId); // This modifies map, so use iterator remove or
+                                    // safe removal
+                                    // UserData.resetMission removes from map.
+                                    // But iterating copy is safer or using iterator.
+                                    // UserData.getAllMissions returns a COPY (new HashMap).
+                                    // So we can iterate the copy and call resetMission on UserData safely.
+                                    data.resetMission(missionId);
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+        }, 20L * 60, 20L * 60); // 1분 주기
     }
 
     /**

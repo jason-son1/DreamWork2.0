@@ -124,9 +124,9 @@ public class ConditionChecker {
                     return player.getLocation().getBlock().getLightLevel() <= lightLimit;
 
                 case "BIOME":
-                    // 바이옴 확인
+                    // 바이옴 확인 (1.21 호환)
                     String biomeName = parts[1].toUpperCase();
-                    return player.getLocation().getBlock().getBiome().name().equals(biomeName);
+                    return player.getLocation().getBlock().getBiome().getKey().getKey().toUpperCase().equals(biomeName);
 
                 case "SKILL_ACTIVE":
                     // 스킬 활성화 여부 확인

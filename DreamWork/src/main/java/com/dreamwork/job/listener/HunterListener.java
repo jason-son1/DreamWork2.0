@@ -33,14 +33,22 @@ import java.util.Random;
 public class HunterListener implements Listener {
 
     private final DreamWorkPlugin plugin;
-    private final Random random = new Random();
+    private final com.dreamwork.job.listener.hunter.TrapManager trapManager;
     private final NamespacedKey eliteKey;
-    private final NamespacedKey killCountKey; // Prefix for player PDC
+    private final NamespacedKey killCountKey;
+    private final NamespacedKey noRewardKey;
+    private final NamespacedKey headshotKey;
+    private final NamespacedKey distanceKey;
+    private final Random random = new Random();
 
-    public HunterListener(DreamWorkPlugin plugin) {
+    public HunterListener(DreamWorkPlugin plugin, com.dreamwork.job.listener.hunter.TrapManager trapManager) {
         this.plugin = plugin;
+        this.trapManager = trapManager;
         this.eliteKey = new NamespacedKey(plugin, "elite_mob");
         this.killCountKey = new NamespacedKey(plugin, "mob_kill_");
+        this.noRewardKey = new NamespacedKey(plugin, "no_reward");
+        this.headshotKey = new NamespacedKey(plugin, "headshot");
+        this.distanceKey = new NamespacedKey(plugin, "distance");
     }
 
     /**
@@ -48,10 +56,19 @@ public class HunterListener implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onCreatureSpawn(CreatureSpawnEvent event) {
-        if (event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.NATURAL)
-            return;
-
         LivingEntity entity = event.getEntity();
+
+        // 스포너 몹 보상 제외 태그
+        if (event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER) {
+            entity.getPersistentDataContainer().set(noRewardKey, PersistentDataType.BYTE, (byte) 1);
+            return;
+        }
+
+        // 자연 스폰만 엘리트 몹 처리
+        if (event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.NATURAL) {
+            return;
+        }
+
         if (!(entity instanceof Monster))
             return;
 
@@ -179,6 +196,14 @@ public class HunterListener implements Listener {
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
+        if (entity instanceof org.bukkit.entity.Player)
+            return;
+
+        // 보상 제외 체크 (스포너 등)
+        if (entity.getPersistentDataContainer().has(new NamespacedKey(plugin, "no_reward"), PersistentDataType.BYTE)) {
+            return;
+        }
+
         Player killer = entity.getKiller();
 
         if (killer == null)
@@ -246,13 +271,15 @@ public class HunterListener implements Listener {
             plugin.getJobManager().giveReward(killer, JobType.HUNTER, exp, money);
             plugin.getMissionManager().processEvent(killer, MissionType.KILL, entity.getType().name(), 1);
 
-            // 조건부 처치 컨텍스트 (헤드샷, 거리 등)
+            // 조건부 처치 컨텍스트 (PDC 기반)
             java.util.Map<String, Object> context = new java.util.HashMap<>();
-            if (entity.hasMetadata("dreamwork:headshot")) {
-                context.put("isHeadshot", entity.getMetadata("dreamwork:headshot").get(0).value());
+            if (entity.getPersistentDataContainer().has(headshotKey, PersistentDataType.BYTE)) {
+                context.put("isHeadshot",
+                        entity.getPersistentDataContainer().get(headshotKey, PersistentDataType.BYTE) == 1);
             }
-            if (entity.hasMetadata("dreamwork:distance")) {
-                context.put("distance", entity.getMetadata("dreamwork:distance").get(0).value());
+            if (entity.getPersistentDataContainer().has(distanceKey, PersistentDataType.DOUBLE)) {
+                context.put("distance",
+                        entity.getPersistentDataContainer().get(distanceKey, PersistentDataType.DOUBLE));
             }
             if (entity instanceof org.bukkit.entity.Ageable ageable && !ageable.isAdult()) {
                 context.put("isBaby", true);
@@ -274,8 +301,8 @@ public class HunterListener implements Listener {
     }
 
     private void markCombatContext(LivingEntity victim, Player attacker, boolean isHeadshot, double distance) {
-        victim.setMetadata("dreamwork:headshot", new org.bukkit.metadata.FixedMetadataValue(plugin, isHeadshot));
-        victim.setMetadata("dreamwork:distance", new org.bukkit.metadata.FixedMetadataValue(plugin, distance));
+        victim.getPersistentDataContainer().set(headshotKey, PersistentDataType.BYTE, (byte) (isHeadshot ? 1 : 0));
+        victim.getPersistentDataContainer().set(distanceKey, PersistentDataType.DOUBLE, distance);
     }
 
     /**
@@ -286,11 +313,36 @@ public class HunterListener implements Listener {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
 
-        if (item == null || item.getType() != Material.COMPASS)
+        if (item == null || item.getType() == Material.AIR)
             return;
-        if (!player.isSneaking())
+
+        // 웅크리고 우클릭
+        if (!player.isSneaking() || !event.getAction().name().contains("RIGHT"))
             return;
-        if (!event.getAction().name().contains("RIGHT"))
+
+        String dwId = plugin.getItemManager().getDreamItemId(item);
+
+        // 1. 사냥용 덫 (Bear Trap)
+        if ("bear_trap".equals(dwId)) {
+            if (event.getAction() == org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK
+                    && event.getClickedBlock() != null) {
+                trapManager.placeTrap(event.getClickedBlock().getLocation().add(0, 1, 0), player);
+                if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+                    item.setAmount(item.getAmount() - 1);
+                }
+                event.setCancelled(true);
+            }
+            return;
+        }
+
+        // 2. 제압용 목줄 (Taming Collar)
+        if ("taming_collar".equals(dwId)) {
+            // PlayerInteractEntityEvent 에서 처리하는게 나을 수 있으나 여기서 대상 확인
+            // 여기서는 일단 취소하고 EntityInteract에서 처리하도록 유도하거나 직접 구현
+            return;
+        }
+
+        if (item.getType() != Material.COMPASS)
             return;
 
         int level = plugin.getUserDataManager().getUserData(player).getJobLevel(JobType.HUNTER);
@@ -349,7 +401,6 @@ public class HunterListener implements Listener {
     }
 
     private void incrementKillCount(Player player, EntityType type) {
-        UserData data = plugin.getUserDataManager().getUserData(player);
         // We can store kills in UserData or PDC on Player.
         // For simplicity and persistence, let's assume UserData has a generic data map
         // or we use Player PDC.
@@ -371,6 +422,63 @@ public class HunterListener implements Listener {
             return player.getPersistentDataContainer().get(key, PersistentDataType.INTEGER);
         }
         return 0;
+    }
+
+    /**
+     * 제압용 목줄 (Taming Collar) 사용
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlayerInteractEntity(org.bukkit.event.player.PlayerInteractEntityEvent event) {
+        Player player = event.getPlayer();
+        Entity entity = event.getRightClicked();
+        ItemStack item = player.getInventory().getItemInMainHand();
+
+        if (item.getType() == Material.AIR)
+            return;
+
+        String dwId = plugin.getItemManager().getDreamItemId(item);
+        if (!"taming_collar".equals(dwId))
+            return;
+
+        event.setCancelled(true);
+
+        if (!(entity instanceof LivingEntity victim) || (entity instanceof Player)) {
+            player.sendMessage("§c해당 대상에게는 사용할 수 없습니다.");
+            return;
+        }
+
+        // 제압 가능 체력 체크 (최대 체력의 20% 이하)
+        double healthPercent = victim.getHealth() / victim.getAttribute(Attribute.MAX_HEALTH).getValue();
+        if (healthPercent > 0.30) { // 30% 이하로 완화
+            player.sendMessage("§c대상이 너무 강렬하게 저항합니다! (체력을 더 낮추어야 합니다)");
+            return;
+        }
+
+        // 확률 체크
+        double successRate = 0.5; // 기본 50%
+        if (random.nextDouble() < successRate) {
+            player.sendMessage("§a[사냥꾼] §f성공적으로 §e" + victim.getName() + "§f을(를) 제압했습니다!");
+            victim.getWorld().spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, victim.getLocation().add(0, 1, 0), 20,
+                    0.5, 0.5, 0.5, 0.1);
+            victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1.0f, 0.5f);
+
+            // 몬스터 제거 및 전리품(보상) 지급
+            // capture_mob 미션 트리거?
+            plugin.getMissionManager().processEvent(player, MissionType.KILL, "CAPTURE_" + victim.getType().name(), 1);
+            victim.remove();
+
+            if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+                item.setAmount(item.getAmount() - 1);
+            }
+        } else {
+            player.sendMessage("§c제압에 실패했습니다! 대상이 날뜁니다.");
+            victim.getWorld().spawnParticle(org.bukkit.Particle.ANGRY_VILLAGER, victim.getLocation().add(0, 1, 0), 5,
+                    0.2, 0.2, 0.2, 0);
+            victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_ZOMBIE_ATTACK_IRON_DOOR, 1.0f, 1.5f);
+
+            // 저항 (데미지)
+            player.damage(2.0);
+        }
     }
 
     private String getCompassDirection(Vector dir) {

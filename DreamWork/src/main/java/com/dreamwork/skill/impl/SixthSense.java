@@ -50,8 +50,25 @@ public class SixthSense extends BukkitRunnable {
             // (60s).
             // Plugin uses 1200 ticks (60s) interval.
 
-            checkForStructure(player, range, level);
+            // Optimization: Skip check if player hasn't moved much
+            if (hasMovedSignificantly(player)) {
+                checkForStructure(player, range, level);
+            }
         }
+    }
+
+    private final java.util.Map<java.util.UUID, Location> lastLocations = new java.util.HashMap<>();
+
+    private boolean hasMovedSignificantly(Player player) {
+        Location current = player.getLocation();
+        Location last = lastLocations.get(player.getUniqueId());
+
+        // 16블록(1청크) 이상 이동했을 때만 체크
+        if (last == null || !last.getWorld().equals(current.getWorld()) || last.distanceSquared(current) > 256) {
+            lastLocations.put(player.getUniqueId(), current);
+            return true;
+        }
+        return false;
     }
 
     private void checkForStructure(Player player, int range, int level) {
@@ -72,12 +89,13 @@ public class SixthSense extends BukkitRunnable {
             targets = new Structure[] {
                     Structure.MINESHAFT,
                     Structure.PILLAGER_OUTPOST,
-                    // Legacy VILLAGE covered all types; listing common variants for compatibility
                     Structure.VILLAGE_PLAINS,
                     Structure.VILLAGE_DESERT,
                     Structure.VILLAGE_SAVANNA,
                     Structure.VILLAGE_TAIGA,
-                    Structure.VILLAGE_SNOWY
+                    Structure.VILLAGE_SNOWY,
+                    Structure.SHIPWRECK,
+                    Structure.BURIED_TREASURE
             };
         }
 

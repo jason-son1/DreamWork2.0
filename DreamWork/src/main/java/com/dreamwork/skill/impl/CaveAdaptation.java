@@ -66,7 +66,7 @@ public class CaveAdaptation implements Listener {
 
         // 최소 레벨 확인
         int unlockLevel = plugin.getConfigManager().getJobConfig("miner")
-                .getInt("skills.cave_adaptation.unlock-level", 25);
+                .getInt("skills.cave_adaptation.unlock-level", 10);
 
         if (minerLevel < unlockLevel) {
             return;
@@ -104,7 +104,7 @@ public class CaveAdaptation implements Listener {
         int minerLevel = userData.getJobLevel(JobType.MINER);
 
         int unlockLevel = plugin.getConfigManager().getJobConfig("miner")
-                .getInt("skills.cave_adaptation.unlock-level", 25);
+                .getInt("skills.cave_adaptation.unlock-level", 10);
 
         if (minerLevel < unlockLevel) {
             return;
@@ -204,26 +204,24 @@ public class CaveAdaptation implements Listener {
      * 낙하 데미지 감소율 계산
      */
     private double calculateFallDamageReduction(int level) {
-        if (level < 25)
+        if (level < 10)
             return 0.0;
-        if (level < 50)
-            return 0.10; // 10% 감소
-        if (level < 75)
+        if (level < 30)
             return 0.20; // 20% 감소
-        return 0.30; // 30% 감소
+        if (level < 50)
+            return 0.50; // 50% 감소
+        return 0.80; // 80% 감소
     }
 
     /**
      * 성급함 효과 레벨 계산
      */
     private int calculateHasteLevel(int level) {
-        if (level < 25)
+        if (level < 30)
             return 0;
         if (level < 50)
             return 1; // 성급함 I
-        if (level < 75)
-            return 2; // 성급함 II
-        return 3; // 성급함 III
+        return 2; // 성급함 II
     }
 
     /**

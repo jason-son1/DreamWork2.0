@@ -20,6 +20,10 @@ public class GuiListener implements Listener {
 
     private final DreamWorkPlugin plugin;
 
+    // Debounce
+    private final java.util.Map<java.util.UUID, Long> lastClick = new java.util.HashMap<>();
+    private static final long COOLDOWN_MS = 200;
+
     public GuiListener(DreamWorkPlugin plugin) {
         this.plugin = plugin;
     }
@@ -29,12 +33,22 @@ public class GuiListener implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGH)
     public void onInventoryClick(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player))
+            return;
+        Player player = (Player) event.getWhoClicked();
+
+        // Check Debounce
+        long now = System.currentTimeMillis();
+        if (now - lastClick.getOrDefault(player.getUniqueId(), 0L) < COOLDOWN_MS) {
+            event.setCancelled(true);
+            return;
+        }
+        lastClick.put(player.getUniqueId(), now);
+
         // DreamGui인지 확인
         if (!(event.getInventory().getHolder() instanceof DreamGui gui)) {
             return;
         }
-
-        Player player = (Player) event.getWhoClicked();
 
         // 기본적으로 아이템 이동 방지
         if (!gui.allowItemMovement()) {

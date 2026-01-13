@@ -4,6 +4,7 @@ import com.dreamwork.DreamWorkPlugin;
 import com.dreamwork.job.JobType;
 import com.dreamwork.skill.SkillManager;
 import org.bukkit.*;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -42,10 +43,31 @@ public class OreRadar {
             return false;
         }
 
-        // 스킬 설정 가져오기
-        int range = plugin.getConfigManager().getJobConfig("miner")
-                .getInt("skills.ore_radar.range", 16);
-        int cooldown = skillManager.getSkillCooldown(JobType.MINER, SKILL_ID);
+        // 유저 레벨 확인
+        int level = plugin.getUserDataManager().getUserData(player).getJobLevel(JobType.MINER);
+        FileConfiguration config = plugin.getConfigManager().getJobConfig("miner");
+
+        // 설정 가져오기 (레벨별)
+        int range = 10;
+        int cooldown = 60;
+        String detailLevel = "existence";
+
+        if (level >= 50) {
+            range = config.getInt("skills.ore_radar.levels.50.radius", 30);
+            cooldown = config.getInt("skills.ore_radar.levels.50.cooldown", 15);
+            detailLevel = "rare";
+        } else if (level >= 30) {
+            range = config.getInt("skills.ore_radar.levels.30.radius", 30);
+            cooldown = config.getInt("skills.ore_radar.levels.30.cooldown", 30);
+            detailLevel = "exact";
+        } else if (level >= 10) {
+            range = config.getInt("skills.ore_radar.levels.10.radius", 20);
+            cooldown = config.getInt("skills.ore_radar.levels.10.cooldown", 45);
+            detailLevel = "rough";
+        } else {
+            range = config.getInt("skills.ore_radar.levels.1.radius", 10);
+            cooldown = config.getInt("skills.ore_radar.levels.1.cooldown", 60);
+        }
 
         // 주변 광물 탐지
         List<Block> ores = findNearbyOres(player, range);
@@ -53,8 +75,7 @@ public class OreRadar {
         if (ores.isEmpty()) {
             player.sendMessage("§7주변에서 광물을 발견하지 못했습니다.");
         } else {
-            player.sendMessage("§a✦ 광맥 탐지! §f" + ores.size() + "개의 광물을 발견했습니다.");
-
+            sendDetailMessage(player, ores, detailLevel);
             // 파티클 효과 시작
             showOreParticles(player, ores);
         }
@@ -66,6 +87,65 @@ public class OreRadar {
         skillManager.startCooldown(player, SKILL_ID, cooldown);
 
         return true;
+    }
+
+    /**
+     * 상세도에 따른 메시지 출력
+     */
+    private void sendDetailMessage(Player player, List<Block> ores, String detailLevel) {
+        switch (detailLevel) {
+            case "existence":
+                player.sendMessage("§a✦ 광맥 탐지! §f근처에서 광물이 감지되었습니다.");
+                break;
+            case "rough":
+                int count = ores.size();
+                String amountMsg = count > 20 ? "다량의" : (count > 5 ? "소량의" : "약간의");
+                player.sendMessage("§a✦ 광맥 탐지! §f근처에서 " + amountMsg + " 광물이 감지되었습니다.");
+                break;
+            case "exact":
+            case "rare":
+                player.sendMessage("§a✦ 광맥 탐지! §f총 " + ores.size() + "개의 광물을 발견했습니다.");
+                // 가장 가까운 광물 정보 (최대 3개)
+                ores.sort((b1, b2) -> Double.compare(
+                        b1.getLocation().distanceSquared(player.getLocation()),
+                        b2.getLocation().distanceSquared(player.getLocation())));
+
+                for (int i = 0; i < Math.min(3, ores.size()); i++) {
+                    Block b = ores.get(i);
+                    double dist = Math.sqrt(b.getLocation().distanceSquared(player.getLocation()));
+                    String direction = getDirection(player.getLocation(), b.getLocation());
+                    String name = b.getType().name().replace("_ORE", "").replace("DEEPSLATE_", "").toLowerCase();
+                    player.sendMessage("  §7- " + direction + " " + String.format("%.1f", dist) + "m: §e" + name);
+                }
+
+                if (detailLevel.equals("rare")) {
+                    // 희귀 광물(다이아, 고대 잔해 등) 강조
+                    long rareCount = ores.stream()
+                            .filter(b -> b.getType() == Material.DIAMOND_ORE
+                                    || b.getType() == Material.DEEPSLATE_DIAMOND_ORE ||
+                                    b.getType() == Material.ANCIENT_DEBRIS || b.getType() == Material.EMERALD_ORE ||
+                                    b.getType() == Material.DEEPSLATE_EMERALD_ORE)
+                            .count();
+                    if (rareCount > 0) {
+                        player.sendMessage("§d✨ 특별한 기운이 느껴집니다! (희귀 광물 " + rareCount + "개 감지)");
+                    }
+                }
+                break;
+        }
+    }
+
+    private String getDirection(Location from, Location to) {
+        double rot = Math.toDegrees(Math.atan2(from.getX() - to.getX(), to.getZ() - from.getZ()));
+        if (rot < 0)
+            rot += 360;
+
+        if (rot >= 315 || rot < 45)
+            return "북쪽";
+        if (rot >= 45 && rot < 135)
+            return "동쪽";
+        if (rot >= 135 && rot < 225)
+            return "남쪽";
+        return "서쪽";
     }
 
     /**
@@ -104,6 +184,9 @@ public class OreRadar {
                     GOLD_ORE, DEEPSLATE_GOLD_ORE,
                     LAPIS_ORE, DEEPSLATE_LAPIS_ORE,
                     REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE,
+                    COAL_ORE, DEEPSLATE_COAL_ORE,
+                    IRON_ORE, DEEPSLATE_IRON_ORE,
+                    COPPER_ORE, DEEPSLATE_COPPER_ORE,
                     ANCIENT_DEBRIS ->
                 true;
             default -> false;
@@ -124,6 +207,11 @@ public class OreRadar {
                     return;
                 }
 
+                if (!player.isOnline()) {
+                    cancel();
+                    return;
+                }
+
                 for (Block ore : ores) {
                     Location loc = ore.getLocation().add(0.5, 0.5, 0.5);
 
@@ -134,8 +222,8 @@ public class OreRadar {
                             Particle.DUST,
                             loc,
                             3,
-                            0.3, 0.3, 0.3,
-                            0,
+                            0.1, 0.1, 0.1,
+                            0.05,
                             dust);
                 }
 

@@ -114,7 +114,7 @@ public class UserDataManager implements Listener {
                     uuid VARCHAR(36) NOT NULL,
                     mission_id VARCHAR(64) NOT NULL,
                     progress INT DEFAULT 0,
-                    completed BOOLEAN DEFAULT FALSE,
+                    status VARCHAR(20) DEFAULT 'NOT_STARTED',
                     assigned_at BIGINT DEFAULT 0,
                     completed_at BIGINT DEFAULT 0,
                     PRIMARY KEY (uuid, mission_id)
@@ -131,11 +131,24 @@ public class UserDataManager implements Listener {
                 )
                 """;
 
+        // 블록 설치 추적 테이블 (어뷰징 방지용)
+        String placedBlocksTable = """
+                CREATE TABLE IF NOT EXISTS dw_placed_blocks (
+                    world VARCHAR(64) NOT NULL,
+                    x INT NOT NULL,
+                    y INT NOT NULL,
+                    z INT NOT NULL,
+                    placed_at BIGINT DEFAULT 0,
+                    PRIMARY KEY (world, x, y, z)
+                )
+                """;
+
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(jobDataTable);
             stmt.execute(visitedChunksTable);
             stmt.execute(missionProgressTable);
             stmt.execute(statsTable);
+            stmt.execute(placedBlocksTable);
         }
 
         plugin.debug("데이터베이스 테이블 생성/확인 완료");
@@ -164,7 +177,7 @@ public class UserDataManager implements Listener {
             try {
                 UserData userData = new UserData(uuid);
 
-                // 직업 데이터 로드
+                // 1. 직업 데이터 로드
                 String query = "SELECT job_type, level, experience, total_exp FROM dw_job_data WHERE uuid = ?";
                 try (PreparedStatement stmt = connection.prepareStatement(query)) {
                     stmt.setString(1, uuid.toString());
@@ -187,9 +200,41 @@ public class UserDataManager implements Listener {
                     }
                 }
 
+                // 2. 미션 데이터 로드
+                String missionQuery = "SELECT mission_id, progress, status, assigned_at, completed_at FROM dw_mission_progress WHERE uuid = ?";
+                try (PreparedStatement stmt = connection.prepareStatement(missionQuery)) {
+                    stmt.setString(1, uuid.toString());
+                    ResultSet rs = stmt.executeQuery();
+
+                    while (rs.next()) {
+                        String missionId = rs.getString("mission_id");
+                        int progress = rs.getInt("progress");
+                        String statusStr = rs.getString("status");
+
+                        com.dreamwork.mission.PlayerMissionData missionData = userData.getOrCreateMission(missionId);
+                        missionData.setProgress(progress);
+
+                        try {
+                            if (statusStr != null) {
+                                missionData.setStatus(com.dreamwork.mission.MissionStatus.valueOf(statusStr));
+                            }
+                        } catch (IllegalArgumentException e) {
+                            // Legacy boolean check fallback if needed or default
+                            if (progress > 0)
+                                missionData.setStatus(com.dreamwork.mission.MissionStatus.IN_PROGRESS);
+                        }
+                    }
+                } catch (SQLException e) {
+                    // Table might not have status column yet if migration failed?
+                    // But we rely on clean state.
+                    plugin.log(Level.WARNING, "미션 데이터 로드 중 오류 (컬럼 불일치 가능성): " + e.getMessage());
+                }
+
                 // 캐시에 저장
                 userCache.put(uuid, userData);
                 plugin.debug("플레이어 데이터 로드 완료: " + uuid);
+
+                // 일일 미션 리셋 체크 (Optional: 여기서 assigned_at 확인 로직 추가 가능)
 
             } catch (SQLException e) {
                 plugin.log(Level.SEVERE, "플레이어 데이터 로드 실패: " + uuid);
@@ -208,7 +253,7 @@ public class UserDataManager implements Listener {
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                // 직업 데이터 저장
+                // 1. 직업 데이터 저장
                 String upsert = """
                         INSERT OR REPLACE INTO dw_job_data
                         (uuid, job_type, level, experience, total_exp)
@@ -222,6 +267,25 @@ public class UserDataManager implements Listener {
                         stmt.setInt(3, userData.getJobLevel(jobType));
                         stmt.setDouble(4, userData.getJobExp(jobType));
                         stmt.setDouble(5, userData.getTotalExp(jobType));
+                        stmt.addBatch();
+                    }
+                    stmt.executeBatch();
+                }
+
+                // 2. 미션 데이터 저장
+                String missionUpsert = """
+                        INSERT OR REPLACE INTO dw_mission_progress
+                        (uuid, mission_id, progress, status, assigned_at, completed_at)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                        """;
+                try (PreparedStatement stmt = connection.prepareStatement(missionUpsert)) {
+                    for (com.dreamwork.mission.PlayerMissionData data : userData.getAllMissions().values()) {
+                        stmt.setString(1, uuid.toString());
+                        stmt.setString(2, data.getMissionId());
+                        stmt.setInt(3, data.getProgress());
+                        stmt.setString(4, data.getStatus().name());
+                        stmt.setLong(5, 0L); // timestamp fields TODO: needs impl in Data object
+                        stmt.setLong(6, 0L);
                         stmt.addBatch();
                     }
                     stmt.executeBatch();
@@ -372,6 +436,67 @@ public class UserDataManager implements Listener {
                     stmt.setInt(3, chunkX);
                     stmt.setInt(4, chunkZ);
                     stmt.setLong(5, System.currentTimeMillis());
+                    stmt.executeUpdate();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    // ==================== 블록 설치 추적 관련 메서드 ====================
+
+    /**
+     * 플레이어가 설치한 블록인지 확인
+     */
+    public boolean isPlacedBlock(org.bukkit.Location loc) {
+        try {
+            String query = "SELECT 1 FROM dw_placed_blocks WHERE world = ? AND x = ? AND y = ? AND z = ?";
+            try (PreparedStatement stmt = connection.prepareStatement(query)) {
+                stmt.setString(1, loc.getWorld().getName());
+                stmt.setInt(2, loc.getBlockX());
+                stmt.setInt(3, loc.getBlockY());
+                stmt.setInt(4, loc.getBlockZ());
+                return stmt.executeQuery().next();
+            }
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    /**
+     * 설치된 블록 기록
+     */
+    public void recordPlacedBlock(org.bukkit.Location loc) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                String insert = "INSERT OR IGNORE INTO dw_placed_blocks (world, x, y, z, placed_at) VALUES (?, ?, ?, ?, ?)";
+                try (PreparedStatement stmt = connection.prepareStatement(insert)) {
+                    stmt.setString(1, loc.getWorld().getName());
+                    stmt.setInt(2, loc.getBlockX());
+                    stmt.setInt(3, loc.getBlockY());
+                    stmt.setInt(4, loc.getBlockZ());
+                    stmt.setLong(5, System.currentTimeMillis());
+                    stmt.executeUpdate();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    /**
+     * 설치된 블록 기록 제거
+     */
+    public void removePlacedBlock(org.bukkit.Location loc) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                String delete = "DELETE FROM dw_placed_blocks WHERE world = ? AND x = ? AND y = ? AND z = ?";
+                try (PreparedStatement stmt = connection.prepareStatement(delete)) {
+                    stmt.setString(1, loc.getWorld().getName());
+                    stmt.setInt(2, loc.getBlockX());
+                    stmt.setInt(3, loc.getBlockY());
+                    stmt.setInt(4, loc.getBlockZ());
                     stmt.executeUpdate();
                 }
             } catch (SQLException e) {

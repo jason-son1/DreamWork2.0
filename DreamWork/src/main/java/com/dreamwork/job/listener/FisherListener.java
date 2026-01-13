@@ -60,7 +60,32 @@ public class FisherListener implements Listener {
         if (event.getState() == PlayerFishEvent.State.CAUGHT_FISH) {
             handleCatch(event, player, level);
         } else if (event.getState() == PlayerFishEvent.State.FISHING) {
-            // Sensitivity Logic
+            // Sensitivity Logic: 입질 시간 단축
+            org.bukkit.entity.FishHook hook = event.getHook();
+
+            double reduction = 0;
+            if (level >= 50)
+                reduction = 0.30;
+            else if (level >= 30)
+                reduction = 0.15;
+            else if (level >= 10)
+                reduction = 0.05;
+
+            // 미끼 보너스 (worm = 10% 추가 단축)
+            ItemStack offhand = player.getInventory().getItemInOffHand();
+            if ("worm".equals(getBaitType(offhand))) {
+                reduction += 0.10;
+            }
+
+            if (reduction > 0) {
+                int minWait = (int) (100 * (1.0 - reduction));
+                int maxWait = (int) (600 * (1.0 - reduction));
+                hook.setWaitTime(Math.max(20, minWait), Math.max(100, maxWait));
+
+                if (random.nextDouble() < 0.2) {
+                    player.sendMessage("§b[어부] §f예민한 감각으로 물고기를 유인합니다. (입질 시간 " + (int) (reduction * 100) + "% 단축)");
+                }
+            }
         }
     }
 
@@ -104,7 +129,18 @@ public class FisherListener implements Listener {
     }
 
     private boolean tryCatchCustomFish(Item caughtEntity, FileConfiguration config, Player player) {
-        if (random.nextDouble() < 0.05) {
+        // 미끼 보너스 확인
+        ItemStack offhand = player.getInventory().getItemInOffHand();
+        String bait = getBaitType(offhand);
+
+        double chance = 0.05; // 기본 5%
+        if ("krill".equals(bait)) {
+            chance = 0.15; // 크릴 사용 시 15%
+        } else if ("shiny_lure".equals(bait)) {
+            chance = 0.10; // 루어 사용 시 10%
+        }
+
+        if (random.nextDouble() < chance) {
             plugin.debug("Custom Fish Catch Triggered for " + player.getName());
             boolean tuna = random.nextBoolean();
             String key = tuna ? "tuna" : "king_salmon";
@@ -166,6 +202,9 @@ public class FisherListener implements Listener {
         meta.setDisplayName("§f" + koreanName + " (" + String.format("%.1f", size) + "cm)");
         // fishTypeKey 설정 (보상 처리를 위해)
         meta.getPersistentDataContainer().set(fishTypeKey, PersistentDataType.STRING, type.name().toLowerCase());
+        // Live Fish NBT
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "live_fish"), PersistentDataType.BYTE,
+                (byte) 1);
         fish.setItemMeta(meta);
 
         caughtEntity.setItemStack(fish);
@@ -288,6 +327,38 @@ public class FisherListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        // Implement Chumming and Knowledge here
+        Player player = event.getPlayer();
+        ItemStack item = event.getItem();
+
+        // 낚싯대를 들고 웅크린 채 우클릭 시 '어종 지식' 발동
+        if (item != null && item.getType() == org.bukkit.Material.FISHING_ROD &&
+                player.isSneaking() && (event.getAction() == org.bukkit.event.block.Action.RIGHT_CLICK_AIR
+                        || event.getAction() == org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK)) {
+
+            int level = plugin.getUserDataManager().getUserData(player).getJobLevel(JobType.FISHER);
+            if (level < 1)
+                return;
+
+            event.setCancelled(true); // 낚시찌 던지기 방지
+
+            org.bukkit.block.Biome biome = player.getLocation().getBlock().getBiome();
+            String biomeName = biome.getKey().getKey();
+
+            player.sendMessage("§b[어부] §f현재 지역(§e" + biomeName + "§f)의 정보:");
+
+            // 바이옴별 어종 안내 (간단히 구현)
+            if (biomeName.contains("ocean") || biomeName.contains("beach")) {
+                player.sendMessage("  §7- 주요 어종: §f대구, 연어, 복어, 열대어");
+                player.sendMessage("  §7- 특이 사항: §b참다랑어§7가 발견될 확률이 높습니다. (크릴 미끼 권장)");
+            } else if (biomeName.contains("river") || biomeName.contains("swamp")) {
+                player.sendMessage("  §7- 주요 어종: §f연어, 대구");
+                player.sendMessage("  §7- 특이 사항: §6대왕 연어§7의 서식지입니다.");
+            } else {
+                player.sendMessage("  §7- 주요 어종: §f대구");
+                player.sendMessage("  §7- 특이 사항: 일반적인 낚시터입니다.");
+            }
+
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+        }
     }
 }

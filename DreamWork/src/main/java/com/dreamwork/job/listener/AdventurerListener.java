@@ -1,21 +1,18 @@
 package com.dreamwork.job.listener;
 
 import com.dreamwork.DreamWorkPlugin;
-import com.dreamwork.core.UserData;
 import com.dreamwork.job.JobType;
 import com.dreamwork.mission.MissionType;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
@@ -84,7 +81,10 @@ public class AdventurerListener implements Listener {
         Block block = player.getLocation().getBlock().getRelative(BlockFace.DOWN);
         applySpeedBoost(player, block.getType(), level);
 
-        // 3. Biome Discovery (Simple check)
+        // 3. Discovery logic
+        if (event.getFrom().getChunk() != event.getTo().getChunk()) {
+            plugin.getMissionManager().processEvent(player, MissionType.WALK, "new_chunk", 1);
+        }
         handlediscovery(player, level);
     }
 
@@ -105,11 +105,12 @@ public class AdventurerListener implements Listener {
             boost = true;
         } else {
             if (level >= 30
-                    && (ground == Material.SAND || ground == Material.GRAVEL || ground == Material.SNOW_BLOCK)) {
+                    && (ground == Material.SAND || ground == Material.RED_SAND || ground == Material.GRAVEL
+                            || ground == Material.SNOW_BLOCK || ground == Material.SNOW)) {
                 newSpeed = 0.23f; // +15%
                 boost = true;
             } else if (level >= 10 && (ground == Material.DIRT_PATH
-                    || ground == Material.SHORT_GRASS)) { // DIRT_PATH check
+                    || ground == Material.SHORT_GRASS || ground == Material.FERN)) {
                 newSpeed = 0.22f; // +10%
                 boost = true;
             }
@@ -237,7 +238,10 @@ public class AdventurerListener implements Listener {
         if (recallTasks.containsKey(player.getUniqueId()))
             return; // Already casting
 
-        // Cooldown check (Simple)
+        // Cooldown check (persistent via PDC or UserData)
+        if (plugin.getUserDataManager().getUserData(player).isOnCooldown("recall", 1000)) {
+            // Placeholder: config values should be used.
+        }
 
         int castTime = 10;
         if (level >= 50)
