@@ -1,0 +1,104 @@
+# ============================================
+#        DreamWork 작물 아이템 정의
+# ============================================
+
+items:
+  # ========== 감자 ==========
+  potato_1star:
+    material: POTATO
+    name: "&7⭐ 감자"
+    lore:
+      - "&7평범한 감자입니다."
+    quality: 1
+    
+  potato_2star:
+    material: POTATO
+    name: "&a⭐⭐ 양질의 감자"
+    lore:
+      - "&7잘 자란 감자입니다."
+      - "&a품질 보너스 +50%"
+    quality: 2
+    
+  potato_3star:
+    material: POTATO
+    name: "&e⭐⭐⭐ 명품 감자"
+    lore:
+      - "&7완벽하게 자란 감자입니다."
+      - "&e품질 보너스 +100%"
+    quality: 3
+    glowing: true
+    
+  # ========== 당근 ==========
+  carrot_1star:
+    material: CARROT
+    name: "&7⭐ 당근"
+    lore:
+      - "&7평범한 당근입니다."
+    quality: 1
+    
+  carrot_2star:
+    material: CARROT
+    name: "&a⭐⭐ 양질의 당근"
+    lore:
+      - "&7잘 자란 당근입니다."
+      - "&a품질 보너스 +50%"
+    quality: 2
+    
+  carrot_3star:
+    material: CARROT
+    name: "&e⭐⭐⭐ 명품 당근"
+    lore:
+      - "&7완벽하게 자란 당근입니다."
+      - "&e품질 보너스 +100%"
+    quality: 3
+    glowing: true
+    
+  # ========== 밀 ==========
+  wheat_1star:
+    material: WHEAT
+    name: "&7⭐ 밀"
+    lore:
+      - "&7평범한 밀입니다."
+    quality: 1
+    
+  wheat_2star:
+    material: WHEAT
+    name: "&a⭐⭐ 양질의 밀"
+    lore:
+      - "&7잘 자란 밀입니다."
+      - "&a품질 보너스 +50%"
+    quality: 2
+    
+  wheat_3star:
+    material: WHEAT
+    name: "&e⭐⭐⭐ 명품 밀"
+    lore:
+      - "&7완벽하게 자란 밀입니다."
+      - "&e품질 보너스 +100%"
+    quality: 3
+    glowing: true
+    
+  # ========== 비트 ==========
+  beetroot_1star:
+    material: BEETROOT
+    name: "&7⭐ 비트"
+    lore:
+      - "&7평범한 비트입니다."
+    quality: 1
+    
+  beetroot_2star:
+    material: BEETROOT
+    name: "&a⭐⭐ 양질의 비트"
+    lore:
+      - "&7잘 자란 비트입니다."
+      - "&a품질 보너스 +50%"
+    quality: 2
+    
+  beetroot_3star:
+    material: BEETROOT
+    name: "&e⭐⭐⭐ 명품 비트"
+    lore:
+      - "&7완벽하게 자란 비트입니다."
+      - "&e품질 보너스 +100%"
+    quality: 3
+    glowing: true

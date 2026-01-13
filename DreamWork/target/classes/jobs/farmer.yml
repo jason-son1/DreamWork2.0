@@ -1,0 +1,66 @@
+# ============================================
+#        농부 직업 설정 파일
+# ============================================
+
+# 작물별 보상
+crops:
+  wheat:
+    exp: 2.0
+    money: 0.8
+  carrot:
+    exp: 2.0
+    money: 0.8
+  potato:
+    exp: 2.0
+    money: 0.8
+  beetroot:
+    exp: 2.5
+    money: 1.0
+  nether_wart:
+    exp: 4.0
+    money: 2.0
+  cocoa:
+    exp: 3.0
+    money: 1.5
+  melon:
+    exp: 3.0
+    money: 1.2
+  pumpkin:
+    exp: 3.0
+    money: 1.2
+  sweet_berry:
+    exp: 1.5
+    money: 0.5
+
+# 등급별 작물 드롭 확률 (기본값)
+quality_chances:
+  star3: 0.05  # 3성 확률 5%
+  star2: 0.20  # 2성 확률 20%
+  # 나머지 75%는 1성 (기본 작물)
+
+# 스킬 설정
+skills:
+  green_thumb:
+    name: "녹색 손길"
+    unlock-level: 10
+    description: "수확 시 자동으로 재파종할 확률이 있습니다."
+    chance: 0.3  # 30% 확률
+    
+  growth_aura:
+    name: "성장의 기운"
+    unlock-level: 25
+    description: "주변 작물의 성장 속도가 증가합니다."
+    radius: 5
+    growth_multiplier: 1.5
+    
+  bountiful_harvest:
+    name: "풍작"
+    unlock-level: 50
+    description: "수확량이 증가하고 고등급 확률이 높아집니다."
+    quality_bonus: 0.1  # 등급 확률 +10%
+    yield_bonus: 0.5    # 수확량 +50%
+
+# Towny 연동 (타운 내 농경지에서만 작동)
+towny:
+  require_farm_plot: false  # true로 설정하면 농경지에서만 보상
+  town_bonus: 1.2           # 타운 내 경험치 보너스

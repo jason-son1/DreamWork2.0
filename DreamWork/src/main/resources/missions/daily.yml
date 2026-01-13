@@ -1,0 +1,118 @@
+# ============================================
+#        일일 미션 설정 파일
+# ============================================
+# 매일 자정에 초기화되는 미션들
+
+daily_miner_01:
+  display_name: "&6⛏ 석탄 수집가"
+  type: BREAK
+  target:
+    - coal_ore
+    - deepslate_coal_ore
+  amount: 30
+  rewards:
+    money: 50
+    job_exp:
+      miner: 100
+  reset_cycle: DAILY
+
+daily_miner_02:
+  display_name: "&6⛏ 철광 캐기"
+  type: BREAK
+  target:
+    - iron_ore
+    - deepslate_iron_ore
+  amount: 20
+  rewards:
+    money: 100
+    job_exp:
+      miner: 150
+    items:
+      - unknown_ore
+  reset_cycle: DAILY
+
+daily_farmer_01:
+  display_name: "&a🌾 밀 수확"
+  type: BREAK
+  target:
+    - wheat
+  amount: 40
+  rewards:
+    money: 40
+    job_exp:
+      farmer: 80
+  reset_cycle: DAILY
+
+daily_farmer_02:
+  display_name: "&a🥕 당근 수확"
+  type: BREAK
+  target:
+    - carrots
+  amount: 30
+  rewards:
+    money: 50
+    job_exp:
+      farmer: 100
+  reset_cycle: DAILY
+
+daily_fisher_01:
+  display_name: "&b🎣 대구 낚기"
+  type: FISH
+  target:
+    - cod
+  amount: 10
+  rewards:
+    money: 60
+    job_exp:
+      fisher: 120
+  reset_cycle: DAILY
+
+daily_fisher_02:
+  display_name: "&b🎣 연어 낚기"
+  type: FISH
+  target:
+    - salmon
+  amount: 8
+  rewards:
+    money: 80
+    job_exp:
+      fisher: 150
+  reset_cycle: DAILY
+
+daily_hunter_01:
+  display_name: "&c🏹 좀비 처치"
+  type: KILL
+  target:
+    - zombie
+    - drowned
+    - husk
+  amount: 15
+  rewards:
+    money: 75
+    job_exp:
+      hunter: 120
+  reset_cycle: DAILY
+
+daily_hunter_02:
+  display_name: "&c🏹 스켈레톤 처치"
+  type: KILL
+  target:
+    - skeleton
+    - stray
+  amount: 10
+  rewards:
+    money: 80
+    job_exp:
+      hunter: 130
+  reset_cycle: DAILY
+
+daily_adventurer_01:
+  display_name: "&d🗺️ 탐험가의 발자국"
+  type: WALK
+  target: []  # 모든 바이옴
+  amount: 100  # 100개 청크 발견
+  rewards:
+    money: 100
+    job_exp:
+      adventurer: 200
+  reset_cycle: DAILY

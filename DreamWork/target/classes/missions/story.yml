@@ -1,0 +1,227 @@
+# ============================================
+#        스토리 미션 설정 파일
+# ============================================
+# 연계 미션 (한 번만 완료 가능)
+
+# ========== 광부 스토리 라인 ==========
+miner_story_01:
+  display_name: "&6⛏ [1장] 광부의 시작"
+  description: "석탄을 채굴하여 광부로서의 첫 발을 내딛으세요."
+  type: BREAK
+  target:
+    - coal_ore
+    - deepslate_coal_ore
+  amount: 10
+  rewards:
+    money: 20
+    job_exp:
+      miner: 50
+    items:
+      - pickaxe_apprentice
+  next_mission: miner_story_02
+  reset_cycle: ONE_TIME
+
+miner_story_02:
+  display_name: "&6⛏ [2장] 철의 시대"
+  description: "더 단단한 철광석을 찾아 채굴하세요."
+  type: BREAK
+  target:
+    - iron_ore
+    - deepslate_iron_ore
+  amount: 30
+  conditions:
+    - "completed:miner_story_01"
+  rewards:
+    money: 100
+    job_exp:
+      miner: 200
+  next_mission: miner_story_03
+  reset_cycle: ONE_TIME
+
+miner_story_03:
+  display_name: "&6⛏ [3장] 깊은 곳으로"
+  description: "다이아몬드 광석을 발견하세요."
+  type: BREAK
+  target:
+    - diamond_ore
+    - deepslate_diamond_ore
+  amount: 5
+  conditions:
+    - "completed:miner_story_02"
+    - "job_level:miner:10"
+  rewards:
+    money: 300
+    job_exp:
+      miner: 500
+    items:
+      - pickaxe_journeyman
+  next_mission: miner_story_04
+  reset_cycle: ONE_TIME
+
+miner_story_04:
+  display_name: "&6⛏ [최종장] 미지의 광석"
+  description: "전설의 미지의 광석을 3개 발견하세요."
+  type: BREAK
+  target:
+    - diamond_ore
+    - deepslate_diamond_ore
+    - emerald_ore
+    - deepslate_emerald_ore
+  amount: 50
+  conditions:
+    - "completed:miner_story_03"
+    - "job_level:miner:25"
+  rewards:
+    money: 1000
+    job_exp:
+      miner: 2000
+    items:
+      - pickaxe_master
+      - dreamstone
+  reset_cycle: ONE_TIME
+
+# ========== 농부 스토리 라인 ==========
+farmer_story_01:
+  display_name: "&a🌾 [1장] 새싹 농부"
+  description: "밀을 수확하여 농부로서의 첫 발을 내딛으세요."
+  type: BREAK
+  target:
+    - wheat
+  amount: 20
+  rewards:
+    money: 15
+    job_exp:
+      farmer: 50
+  next_mission: farmer_story_02
+  reset_cycle: ONE_TIME
+
+farmer_story_02:
+  display_name: "&a🌾 [2장] 다양한 작물"
+  description: "당근과 감자를 재배하세요."
+  type: BREAK
+  target:
+    - carrots
+    - potatoes
+  amount: 40
+  conditions:
+    - "completed:farmer_story_01"
+  rewards:
+    money: 80
+    job_exp:
+      farmer: 150
+  next_mission: farmer_story_03
+  reset_cycle: ONE_TIME
+
+farmer_story_03:
+  display_name: "&a🌾 [3장] 네더 작물"
+  description: "네더 와트를 재배하세요."
+  type: BREAK
+  target:
+    - nether_wart
+  amount: 30
+  conditions:
+    - "completed:farmer_story_02"
+    - "job_level:farmer:15"
+  rewards:
+    money: 200
+    job_exp:
+      farmer: 400
+  reset_cycle: ONE_TIME
+
+# ========== 어부 스토리 라인 ==========
+fisher_story_01:
+  display_name: "&b🎣 [1장] 첫 낚시"
+  description: "물고기를 낚아보세요."
+  type: FISH
+  target:
+    - cod
+    - salmon
+  amount: 5
+  rewards:
+    money: 25
+    job_exp:
+      fisher: 50
+    items:
+      - fishing_rod_apprentice
+  next_mission: fisher_story_02
+  reset_cycle: ONE_TIME
+
+fisher_story_02:
+  display_name: "&b🎣 [2장] 열대어 수집"
+  description: "열대어를 낚으세요."
+  type: FISH
+  target:
+    - tropical_fish
+  amount: 10
+  conditions:
+    - "completed:fisher_story_01"
+  rewards:
+    money: 150
+    job_exp:
+      fisher: 300
+  next_mission: fisher_story_03
+  reset_cycle: ONE_TIME
+
+fisher_story_03:
+  display_name: "&b🎣 [최종장] 대어 사냥"
+  description: "100마리의 물고기를 낚아 어부의 정점에 서세요."
+  type: FISH
+  target: []
+  amount: 100
+  conditions:
+    - "completed:fisher_story_02"
+    - "job_level:fisher:25"
+  rewards:
+    money: 500
+    job_exp:
+      fisher: 1000
+    items:
+      - fishing_rod_master
+  reset_cycle: ONE_TIME
+
+# ========== 사냥꾼 스토리 라인 ==========
+hunter_story_01:
+  display_name: "&c🏹 [1장] 사냥의 시작"
+  description: "좀비를 처치하세요."
+  type: KILL
+  target:
+    - zombie
+  amount: 10
+  rewards:
+    money: 30
+    job_exp:
+      hunter: 60
+  next_mission: hunter_story_02
+  reset_cycle: ONE_TIME
+
+hunter_story_02:
+  display_name: "&c🏹 [2장] 스켈레톤 사냥"
+  description: "스켈레톤을 처치하세요."
+  type: KILL
+  target:
+    - skeleton
+  amount: 20
+  conditions:
+    - "completed:hunter_story_01"
+  rewards:
+    money: 100
+    job_exp:
+      hunter: 200
+  next_mission: hunter_story_03
+  reset_cycle: ONE_TIME
+
+hunter_story_03:
+  display_name: "&c🏹 [3장] 엔더맨과의 대결"
+  description: "엔더맨을 처치하세요."
+  type: KILL
+  target:
+    - enderman
+  amount: 10
+  conditions:
+    - "completed:hunter_story_02"
+    - "job_level:hunter:20"
+  rewards:
+    money: 300
+    job_exp:
+      hunter: 600
+  reset_cycle: ONE_TIME

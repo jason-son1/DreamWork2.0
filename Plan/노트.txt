@@ -1,0 +1,4 @@
+E:\Minecraft\minecraft plugin\DreamWork2.0\Plan에 있는 모든 내용기반으로
+개발 명령.txt에 있는 명령을 기반으로 모든 작업을 시작하십시오.
+
+모든 설명과 주석은 한국어로

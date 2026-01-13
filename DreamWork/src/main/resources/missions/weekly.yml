@@ -1,0 +1,130 @@
+# ============================================
+#        주간 미션 설정 파일
+# ============================================
+# 매주 월요일 자정에 초기화되는 미션들
+
+weekly_miner_01:
+  display_name: "&6⛏ 광산의 지배자"
+  type: BREAK
+  target:
+    - diamond_ore
+    - deepslate_diamond_ore
+  amount: 30
+  rewards:
+    money: 500
+    job_exp:
+      miner: 800
+    items:
+      - dreamstone
+  reset_cycle: WEEKLY
+
+weekly_miner_02:
+  display_name: "&6⛏ 네더라이트 탐색자"
+  type: BREAK
+  target:
+    - ancient_debris
+  amount: 5
+  rewards:
+    money: 1000
+    job_exp:
+      miner: 1500
+  reset_cycle: WEEKLY
+
+weekly_farmer_01:
+  display_name: "&a🌾 대농장주"
+  type: BREAK
+  target:
+    - wheat
+    - carrots
+    - potatoes
+    - beetroots
+  amount: 500
+  rewards:
+    money: 400
+    job_exp:
+      farmer: 1000
+  reset_cycle: WEEKLY
+
+weekly_farmer_02:
+  display_name: "&a🎃 호박 수확 축제"
+  type: BREAK
+  target:
+    - pumpkin
+    - melon
+  amount: 100
+  rewards:
+    money: 300
+    job_exp:
+      farmer: 600
+  reset_cycle: WEEKLY
+
+weekly_fisher_01:
+  display_name: "&b🎣 바다의 전문가"
+  type: FISH
+  target:
+    - cod
+    - salmon
+    - tropical_fish
+    - pufferfish
+  amount: 100
+  rewards:
+    money: 600
+    job_exp:
+      fisher: 1200
+  reset_cycle: WEEKLY
+
+weekly_fisher_02:
+  display_name: "&b🐡 복어 전문가"
+  type: FISH
+  target:
+    - pufferfish
+  amount: 20
+  rewards:
+    money: 400
+    job_exp:
+      fisher: 800
+    items:
+      - pufferfish_fresh
+  reset_cycle: WEEKLY
+
+weekly_hunter_01:
+  display_name: "&c🏹 엘리트 사냥꾼"
+  type: KILL
+  target:
+    - zombie
+    - skeleton
+    - spider
+    - creeper
+    - enderman
+  amount: 200
+  rewards:
+    money: 700
+    job_exp:
+      hunter: 1500
+  reset_cycle: WEEKLY
+
+weekly_hunter_02:
+  display_name: "&c🏹 네더 정복자"
+  type: KILL
+  target:
+    - blaze
+    - wither_skeleton
+    - ghast
+    - piglin_brute
+  amount: 50
+  rewards:
+    money: 1000
+    job_exp:
+      hunter: 2000
+  reset_cycle: WEEKLY
+
+weekly_adventurer_01:
+  display_name: "&d🗺️ 세계 탐험가"
+  type: WALK
+  target: []
+  amount: 1000
+  rewards:
+    money: 800
+    job_exp:
+      adventurer: 2000
+  reset_cycle: WEEKLY

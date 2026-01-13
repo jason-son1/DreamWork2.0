@@ -1,0 +1,149 @@
+# ============================================
+#        DreamWork 메시지 설정 파일
+# ============================================
+# 모든 메시지는 색상 코드(&) 지원
+# 플레이스홀더: {player}, {job}, {level}, {exp}, {money} 등
+
+# 프리픽스 (모든 메시지 앞에 붙음)
+prefix: "&6[&eDreamWork&6] &f"
+
+# 일반 메시지
+general:
+  reload-success: "&a설정 파일을 성공적으로 리로드했습니다."
+  reload-failed: "&c설정 파일 리로드에 실패했습니다: {error}"
+  no-permission: "&c이 명령어를 사용할 권한이 없습니다."
+  player-only: "&c이 명령어는 플레이어만 사용할 수 있습니다."
+  player-not-found: "&c플레이어를 찾을 수 없습니다: {player}"
+  invalid-amount: "&c올바른 숫자를 입력해주세요."
+
+# 직업 관련 메시지
+job:
+  # 경험치 획득
+  exp-gain: "&a+{exp} {job} 경험치"
+  
+  # 돈 획득
+  money-gain: "&6+{money}D"
+  
+  # 레벨업
+  levelup-title: "&b&lLEVEL UP!"
+  levelup-subtitle: "&f{job} Lv.{old_level} &7→ &bLv.{new_level}"
+  levelup-chat: "&a축하합니다! &e{job}&a 직업이 &bLv.{new_level}&a이 되었습니다!"
+  
+  # 최대 레벨 도달
+  max-level: "&6{job} 직업이 최대 레벨에 도달했습니다!"
+  
+  # 스킬 해금
+  skill-unlocked: "&a새로운 스킬이 해금되었습니다: &e{skill}"
+  
+  # 스킬 사용
+  skill-cooldown: "&c스킬 쿨다운 중입니다. ({remaining}초)"
+  skill-no-permission: "&c이 스킬을 사용할 레벨이 되지 않았습니다. (필요: Lv.{required})"
+
+# 직업 이름 (한국어)
+job-names:
+  MINER: "광부"
+  FARMER: "농부"
+  FISHER: "어부"
+  HUNTER: "사냥꾼"
+  ADVENTURER: "탐험가"
+
+# 아이템 관련 메시지
+item:
+  give-success: "&a{player}에게 &e{item}&a을(를) {amount}개 지급했습니다."
+  give-failed: "&c아이템 지급에 실패했습니다: {error}"
+  item-not-found: "&c아이템을 찾을 수 없습니다: {id}"
+  inventory-full: "&c인벤토리가 가득 찼습니다! 아이템이 바닥에 드롭되었습니다."
+
+# 미션 관련 메시지
+mission:
+  # 미션 진행도
+  progress: "&7{mission}: &e{current}&7/&e{target} &7({percent}%)"
+  
+  # 미션 완료
+  complete-title: "&a&l미션 완료!"
+  complete-subtitle: "&f{mission}"
+  complete-chat: "&a미션 &e{mission}&a을(를) 완료했습니다!"
+  
+  # 보상 획득
+  reward-money: "&6+{amount}D 보상 획득"
+  reward-exp: "&a+{amount} {job} 경험치 보상 획득"
+  reward-item: "&e{item} x{amount} 보상 획득"
+  
+  # 일일 미션 초기화
+  daily-reset: "&a일일 미션이 초기화되었습니다. 새로운 미션을 확인하세요!"
+
+# 광부 전용 메시지
+miner:
+  # 미지의 광석 발견
+  unknown-ore-found: "&a✨ 미지의 광석을 발견했습니다!"
+  
+  # 드림스톤 발견
+  dreamstone-found: "&d✨ 드림스톤을 발견했습니다!"
+  
+  # 광맥 탐지 스킬
+  ore-radar-result: "&e주변 {range}블록 내 광물 탐지 결과:\n{ores}"
+  ore-radar-no-ore: "&7주변에 광물이 없습니다."
+  
+  # 지하 적응 활성화
+  cave-adaptation: "&7지하 적응 효과가 활성화되었습니다."
+  
+  # 몰입 상태
+  trance-level1: "&a광부의 몰입 1단계 활성화! (경험치 +10%)"
+  trance-level2: "&b광부의 몰입 2단계 활성화! (드롭률 증가)"
+  trance-level3: "&d광부의 몰입 3단계 활성화! (희귀 광물 확률 증가)"
+
+# 농부 전용 메시지
+farmer:
+  # 고품질 작물 획득
+  quality-crop: "&a⭐ {stars}성 {crop}을(를) 수확했습니다!"
+  
+  # 녹색 손길 발동
+  green-thumb: "&a씨앗이 자동으로 재파종되었습니다."
+  
+  # 풍년의 기운
+  growth-aura: "&a주변 작물의 성장이 가속화됩니다."
+
+# 어부 전용 메시지
+fisher:
+  # 물고기 낚음
+  fish-caught: "&b{fish}을(를) 낚았습니다! (크기: {size}cm)"
+  
+  # 살아있는 물고기
+  live-fish: "&a살아있는 물고기입니다! 아쿠아리움에 납품하세요."
+  
+  # 입질 감지
+  sensitivity: "&7낚시 대기 시간이 감소합니다."
+
+# 사냥꾼 전용 메시지
+hunter:
+  # 몬스터 처치
+  monster-killed: "&c{monster}을(를) 처치했습니다!"
+  
+  # 엘리트 몹 처치
+  elite-killed: "&6⚔ 엘리트 {monster}을(를) 처치했습니다! 추가 보상 획득!"
+  
+  # 약점 간파
+  vital-strike: "&c약점 간파! 치명타 공격!"
+
+# 탐험가 전용 메시지
+adventurer:
+  # 새 바이옴 발견
+  biome-discovered: "&a새로운 바이옴을 발견했습니다: &e{biome}"
+  
+  # 구조물 발견
+  structure-discovered: "&6구조물을 발견했습니다: &e{structure}"
+  
+  # 청크 탐험
+  chunk-explored: "&7새로운 지역을 탐험했습니다. (+{exp} 탐험 경험치)"
+  
+  # 육감 발동
+  sixth-sense: "&d육감이 작동합니다... 근처에 뭔가 있습니다!"
+
+# GUI 관련 메시지
+gui:
+  main-dashboard-title: "&0DreamWork : My Status"
+  job-detail-title: "&0{job} 상세 정보"
+  mission-board-title: "&0📋 미션 게시판"
+  forge-title: "&0⚒ 대장간"
+  kitchen-title: "&0🍳 주방"
+  fish-market-title: "&0🐟 어시장"

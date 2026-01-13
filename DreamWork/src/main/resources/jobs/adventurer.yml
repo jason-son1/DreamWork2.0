@@ -1,0 +1,169 @@
+# ============================================
+#        탐험가 직업 설정 파일
+# ============================================
+
+# 청크 발견 기본 보상
+chunk_discover_exp: 1.0
+chunk_discover_money: 0.5
+
+# 바이옴별 추가 보상 (처음 발견 시)
+biomes:
+  # 일반 바이옴
+  plains:
+    exp: 0
+    money: 0
+  forest:
+    exp: 0
+    money: 0
+  birch_forest:
+    exp: 2.0
+    money: 1.0
+  dark_forest:
+    exp: 5.0
+    money: 3.0
+  jungle:
+    exp: 10.0
+    money: 5.0
+  desert:
+    exp: 3.0
+    money: 2.0
+    
+  # 해양 바이옴
+  ocean:
+    exp: 2.0
+    money: 1.0
+  deep_ocean:
+    exp: 5.0
+    money: 3.0
+  warm_ocean:
+    exp: 8.0
+    money: 4.0
+  lukewarm_ocean:
+    exp: 6.0
+    money: 3.0
+  cold_ocean:
+    exp: 5.0
+    money: 3.0
+  frozen_ocean:
+    exp: 10.0
+    money: 6.0
+    
+  # 산악 바이옴
+  mountains:
+    exp: 5.0
+    money: 3.0
+  windswept_hills:
+    exp: 5.0
+    money: 3.0
+  stony_peaks:
+    exp: 8.0
+    money: 5.0
+  jagged_peaks:
+    exp: 10.0
+    money: 6.0
+  frozen_peaks:
+    exp: 12.0
+    money: 8.0
+    
+  # 특수 바이옴
+  mushroom_fields:
+    exp: 50.0
+    money: 30.0
+  badlands:
+    exp: 20.0
+    money: 12.0
+  eroded_badlands:
+    exp: 25.0
+    money: 15.0
+    
+  # 동굴 바이옴
+  lush_caves:
+    exp: 15.0
+    money: 10.0
+  dripstone_caves:
+    exp: 12.0
+    money: 8.0
+  deep_dark:
+    exp: 50.0
+    money: 40.0
+    
+  # 네더 바이옴
+  nether_wastes:
+    exp: 10.0
+    money: 5.0
+  soul_sand_valley:
+    exp: 15.0
+    money: 8.0
+  crimson_forest:
+    exp: 20.0
+    money: 12.0
+  warped_forest:
+    exp: 20.0
+    money: 12.0
+  basalt_deltas:
+    exp: 25.0
+    money: 15.0
+    
+  # 엔드 바이옴
+  the_end:
+    exp: 30.0
+    money: 20.0
+  end_highlands:
+    exp: 40.0
+    money: 25.0
+  end_midlands:
+    exp: 35.0
+    money: 20.0
+  small_end_islands:
+    exp: 50.0
+    money: 30.0
+
+# 구조물 발견 보상
+structures:
+  village:
+    exp: 50.0
+    money: 30.0
+  desert_pyramid:
+    exp: 100.0
+    money: 60.0
+  jungle_temple:
+    exp: 100.0
+    money: 60.0
+  ocean_monument:
+    exp: 150.0
+    money: 100.0
+  woodland_mansion:
+    exp: 200.0
+    money: 150.0
+  nether_fortress:
+    exp: 100.0
+    money: 70.0
+  bastion_remnant:
+    exp: 150.0
+    money: 100.0
+  end_city:
+    exp: 200.0
+    money: 150.0
+  stronghold:
+    exp: 300.0
+    money: 200.0
+
+# 스킬 설정
+skills:
+  pathfinder:
+    name: "길잡이"
+    unlock-level: 10
+    description: "이동 속도가 증가합니다."
+    speed_bonus: 0.1  # +10% 이동 속도
+    
+  sixth_sense:
+    name: "육감"
+    unlock-level: 25
+    description: "근처의 특수 구조물을 감지합니다."
+    detect_radius: 100
+    
+  cartographer:
+    name: "지도 제작자"
+    unlock-level: 50
+    description: "발견한 지역의 지도를 판매할 수 있습니다."
+    map_sell_multiplier: 1.5

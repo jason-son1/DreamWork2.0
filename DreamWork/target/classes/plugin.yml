@@ -1,0 +1,76 @@
+name: DreamWork
+version: 2.0.0
+main: com.dreamwork.DreamWorkPlugin
+api-version: '1.21'
+author: DreamWork Team
+description: DreamWork 서버 핵심 플러그인 - 직업 시스템, 커스텀 아이템, 미션 시스템
+
+# 필수 의존성
+depend:
+  - Vault
+
+# 선택적 의존성 (없어도 작동하지만 있으면 기능 확장)
+softdepend:
+  - PlaceholderAPI
+  - Towny
+  - Citizens
+  - LuckPerms
+
+# 플러그인 로드 순서
+load: POSTWORLD
+
+# 명령어 정의
+commands:
+  dreamwork:
+    description: DreamWork 메인 명령어
+    aliases: [dw, dream]
+    usage: /<command> [하위명령어]
+    permission: dreamwork.use
+
+  dwadmin:
+    description: DreamWork 관리자 명령어
+    usage: /<command> [하위명령어]
+    permission: dreamwork.admin
+
+# 권한 정의
+permissions:
+  dreamwork.use:
+    description: 기본 DreamWork 명령어 사용 권한
+    default: true
+
+  dreamwork.admin:
+    description: DreamWork 관리자 권한
+    default: op
+
+  dreamwork.admin.reload:
+    description: 설정 리로드 권한
+    default: op
+
+  dreamwork.admin.give:
+    description: 아이템 지급 권한
+    default: op
+
+  dreamwork.admin.setlevel:
+    description: 레벨 설정 권한
+    default: op
+
+  # 직업 스킬 권한
+  dreamwork.skill.miner.*:
+    description: 모든 광부 스킬 사용 권한
+    default: false
+
+  dreamwork.skill.farmer.*:
+    description: 모든 농부 스킬 사용 권한
+    default: false
+
+  dreamwork.skill.fisher.*:
+    description: 모든 어부 스킬 사용 권한
+    default: false
+
+  dreamwork.skill.hunter.*:
+    description: 모든 사냥꾼 스킬 사용 권한
+    default: false
+
+  dreamwork.skill.adventurer.*:
+    description: 모든 탐험가 스킬 사용 권한
+    default: false

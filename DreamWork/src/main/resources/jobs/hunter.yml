@@ -1,0 +1,146 @@
+# ============================================
+#        사냥꾼 직업 설정 파일
+# ============================================
+
+# 스포너 몹 보상 배율 (0.2 = 20%)
+spawner_multiplier: 0.2
+
+# 몹별 보상
+mobs:
+  # 일반 몹
+  zombie:
+    exp: 8.0
+    money: 3.0
+  skeleton:
+    exp: 10.0
+    money: 4.0
+  spider:
+    exp: 8.0
+    money: 3.0
+  cave_spider:
+    exp: 10.0
+    money: 4.0
+  creeper:
+    exp: 12.0
+    money: 5.0
+  enderman:
+    exp: 15.0
+    money: 8.0
+  witch:
+    exp: 15.0
+    money: 10.0
+  slime:
+    exp: 5.0
+    money: 2.0
+  magma_cube:
+    exp: 8.0
+    money: 3.0
+    
+  # 변종 좀비/스켈레톤
+  drowned:
+    exp: 10.0
+    money: 5.0
+  husk:
+    exp: 10.0
+    money: 4.0
+  stray:
+    exp: 12.0
+    money: 5.0
+  phantom:
+    exp: 15.0
+    money: 8.0
+    
+  # 네더 몹
+  blaze:
+    exp: 15.0
+    money: 8.0
+  ghast:
+    exp: 20.0
+    money: 12.0
+  wither_skeleton:
+    exp: 20.0
+    money: 12.0
+  piglin:
+    exp: 10.0
+    money: 5.0
+  piglin_brute:
+    exp: 25.0
+    money: 15.0
+  hoglin:
+    exp: 15.0
+    money: 8.0
+  zoglin:
+    exp: 18.0
+    money: 10.0
+  zombified_piglin:
+    exp: 12.0
+    money: 6.0
+    
+  # 수호자
+  guardian:
+    exp: 15.0
+    money: 8.0
+  elder_guardian:
+    exp: 100.0
+    money: 80.0
+    
+  # 습격 몹
+  pillager:
+    exp: 15.0
+    money: 8.0
+  vindicator:
+    exp: 20.0
+    money: 12.0
+  evoker:
+    exp: 30.0
+    money: 20.0
+  ravager:
+    exp: 50.0
+    money: 40.0
+  vex:
+    exp: 8.0
+    money: 4.0
+    
+  # 던전/동굴 몹
+  shulker:
+    exp: 25.0
+    money: 15.0
+  warden:
+    exp: 200.0
+    money: 150.0
+    
+  # 보스
+  wither:
+    exp: 500.0
+    money: 300.0
+  ender_dragon:
+    exp: 1000.0
+    money: 500.0
+
+# 스킬 설정
+skills:
+  critical_eye:
+    name: "약점 간파"
+    unlock-level: 10
+    description: "치명타 확률이 증가합니다."
+    crit_chance_bonus: 0.1  # +10% 치명타 확률
+    
+  hunter_instinct:
+    name: "사냥꾼의 직감"
+    unlock-level: 25
+    description: "엘리트 몹을 감지하고 추가 보상을 받습니다."
+    elite_exp_bonus: 0.5
+    
+  trophy_hunter:
+    name: "트로피 사냥꾼"
+    unlock-level: 50
+    description: "희귀 전리품 획득 확률이 증가합니다."
+    rare_drop_bonus: 0.2  # +20% 희귀 드롭
+
+# 엘리트 몹 시스템
+elite_mobs:
+  spawn_chance: 0.05  # 5% 확률로 엘리트 몹 스폰
+  health_multiplier: 2.0
+  damage_multiplier: 1.5
+  exp_multiplier: 3.0
+  money_multiplier: 3.0

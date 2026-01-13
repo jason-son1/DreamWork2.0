@@ -1,0 +1,95 @@
+# ============================================
+#        DreamWork 메인 설정 파일
+# ============================================
+# 모든 설명은 한국어로 작성됨
+# /dw reload 명령어로 서버 재시작 없이 리로드 가능
+
+# 일반 설정
+general:
+  # 디버그 모드 (콘솔에 상세 로그 출력)
+  debug: false
+  
+  # 데이터 자동 저장 간격 (초)
+  auto-save-interval: 300
+  
+  # 언어 설정
+  language: ko_KR
+
+# 데이터베이스 설정
+database:
+  # 저장 방식: SQLITE, JSON
+  type: SQLITE
+  
+  # SQLite 파일 이름
+  sqlite-file: dreamwork.db
+
+# 직업 시스템 설정
+jobs:
+  # 최대 레벨
+  max-level: 100
+  
+  # 레벨업 경험치 공식 (level 변수 사용)
+  # 공식: 100 * (level ^ 1.5) + 50
+  exp-formula: "100 * Math.pow(level, 1.5) + 50"
+  
+  # 글로벌 경험치 배율 (이벤트용)
+  global-exp-multiplier: 1.0
+  
+  # 글로벌 돈 배율 (이벤트용)
+  global-money-multiplier: 1.0
+  
+  # 설치된 블록 감지 (어뷰징 방지)
+  check-player-placed-blocks: true
+
+# 액션바 알림 설정
+actionbar:
+  # 경험치 획득 시 액션바 표시
+  show-exp-gain: true
+  
+  # 돈 획득 시 액션바 표시
+  show-money-gain: true
+  
+  # 액션바 표시 형식
+  format: "&e+{exp} Exp &6(+{money}G) &7| &f{job} Lv.{level} &a[{progress_bar}] &7({percent}%)"
+
+# 레벨업 알림 설정
+levelup:
+  # 타이틀 표시
+  show-title: true
+  
+  # 사운드 재생
+  play-sound: true
+  
+  # 사운드 종류
+  sound: ENTITY_PLAYER_LEVELUP
+  
+  # 폭죽 효과
+  show-firework: true
+
+# 외부 플러그인 연동 설정
+hooks:
+  # Vault 경제 시스템 사용
+  vault-enabled: true
+  
+  # PlaceholderAPI 사용
+  papi-enabled: true
+  
+  # Towny 연동 (타운 내부만 농사 가능 등)
+  towny-enabled: true
+  
+  # Citizens NPC 연동
+  citizens-enabled: true
+  
+  # LuckPerms 연동 (레벨업 시 권한/칭호 부여)
+  luckperms-enabled: true
+
+# 어뷰징 방지 설정
+anti-abuse:
+  # 동일 행동 쿨다운 (밀리초)
+  action-cooldown: 500
+  
+  # 일일 경험치 상한 (0 = 제한 없음)
+  daily-exp-cap: 0
+  
+  # 일일 돈 획득 상한 (0 = 제한 없음)
+  daily-money-cap: 0

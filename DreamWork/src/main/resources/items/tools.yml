@@ -1,0 +1,105 @@
+# ============================================
+#        DreamWork 도구 아이템 정의
+# ============================================
+
+items:
+  # ========== 광부 곡괭이 ==========
+  pickaxe_apprentice:
+    material: STONE_PICKAXE
+    name: "&7⛏ 견습 광부의 곡괭이"
+    lore:
+      - "&7광부 길드에서 지급한 곡괭이입니다."
+      - "&7"
+      - "&f채굴 경험치: &a+5%"
+      - "&7"
+      - "&8필요 레벨: 1"
+    quality: 1
+    pdc_data:
+      tool_tier: 1
+      exp_bonus: 0.05
+      
+  pickaxe_journeyman:
+    material: IRON_PICKAXE
+    name: "&a⛏ 숙련 광부의 곡괭이"
+    lore:
+      - "&7경험 많은 광부가 사용하는 곡괭이입니다."
+      - "&7"
+      - "&f채굴 경험치: &a+10%"
+      - "&f채굴 속도: &b+15%"
+      - "&7"
+      - "&8필요 레벨: 25"
+    quality: 2
+    pdc_data:
+      tool_tier: 2
+      exp_bonus: 0.10
+      speed_bonus: 0.15
+      
+  pickaxe_master:
+    material: DIAMOND_PICKAXE
+    name: "&b⛏ 명인의 곡괭이"
+    lore:
+      - "&b대가 광부만이 사용할 수 있는 곡괭이입니다."
+      - "&7"
+      - "&f채굴 경험치: &a+20%"
+      - "&f채굴 속도: &b+30%"
+      - "&f희귀 광물 확률: &d+10%"
+      - "&7"
+      - "&8필요 레벨: 50"
+    quality: 3
+    glowing: true
+    pdc_data:
+      tool_tier: 3
+      exp_bonus: 0.20
+      speed_bonus: 0.30
+      rare_bonus: 0.10
+      
+  pickaxe_legendary:
+    material: NETHERITE_PICKAXE
+    name: "&6⛏ 전설의 대지 분쇄자"
+    lore:
+      - "&6전설로만 전해지던 최강의 곡괭이입니다."
+      - "&7"
+      - "&f채굴 경험치: &a+50%"
+      - "&f채굴 속도: &b+50%"
+      - "&f희귀 광물 확률: &d+25%"
+      - "&f드림스톤 확률: &d+5%"
+      - "&7"
+      - "&8필요 레벨: 100"
+    quality: 4
+    glowing: true
+    pdc_data:
+      tool_tier: 4
+      exp_bonus: 0.50
+      speed_bonus: 0.50
+      rare_bonus: 0.25
+      dreamstone_bonus: 0.05
+
+  # ========== 낚싯대 ==========
+  fishing_rod_apprentice:
+    material: FISHING_ROD
+    name: "&7🎣 견습 어부의 낚싯대"
+    lore:
+      - "&7어부 길드에서 지급한 낚싯대입니다."
+      - "&7"
+      - "&f낚시 경험치: &a+5%"
+    quality: 1
+    pdc_data:
+      tool_tier: 1
+      exp_bonus: 0.05
+      
+  fishing_rod_master:
+    material: FISHING_ROD
+    name: "&b🎣 명인의 낚싯대"
+    lore:
+      - "&b대가 어부만이 사용하는 낚싯대입니다."
+      - "&7"
+      - "&f낚시 경험치: &a+20%"
+      - "&f대어 확률: &b+15%"
+      - "&f보물 확률: &d+10%"
+    quality: 3
+    glowing: true
+    pdc_data:
+      tool_tier: 3
+      exp_bonus: 0.20
+      big_fish_bonus: 0.15
+      treasure_bonus: 0.10
