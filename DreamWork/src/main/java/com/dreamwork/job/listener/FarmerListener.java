@@ -339,63 +339,80 @@ public class FarmerListener implements Listener {
 
     @EventHandler
     public void onInventoryClose(org.bukkit.event.inventory.InventoryCloseEvent event) {
-        if (event.getInventory().getHolder() instanceof org.bukkit.block.Barrel) {
-            org.bukkit.inventory.Inventory inv = event.getInventory();
-            long now = System.currentTimeMillis();
-            NamespacedKey timestampKey = new NamespacedKey(plugin, "aging_start");
+        if (event.getInventory().getType() != org.bukkit.event.inventory.InventoryType.BARREL) {
+            return;
+        }
 
-            for (ItemStack item : inv.getContents()) {
-                if (item == null || item.getType() == Material.AIR)
-                    continue;
+        org.bukkit.inventory.Inventory inv = event.getInventory();
+        long now = System.currentTimeMillis();
+        NamespacedKey timestampKey = new NamespacedKey(plugin, "aging_start");
 
-                // 작물인지 확인 (isRegularCrop 활용 가능하지만 Material만 체크)
-                if (!isRegularCrop(item.getType()))
-                    continue;
+        for (ItemStack item : inv.getContents()) {
+            if (item == null || item.getType() == Material.AIR)
+                continue;
+            if (!isRegularCrop(item.getType()))
+                continue;
 
-                ItemMeta meta = item.getItemMeta();
-                if (meta == null)
-                    continue;
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null)
+                continue;
 
-                // 시간 체크
-                if (meta.getPersistentDataContainer().has(timestampKey, PersistentDataType.LONG)) {
-                    long start = meta.getPersistentDataContainer().get(timestampKey, PersistentDataType.LONG);
-                    long elapsed = now - start;
+            // 이미 최고 품질이면 스킵
+            int currentQuality = meta.getPersistentDataContainer().getOrDefault(qualityKey, PersistentDataType.INTEGER,
+                    1);
+            if (currentQuality >= 3)
+                continue;
 
-                    // 10분(600초) 단위로 등급 상승
-                    long interval = 600_000L;
-                    if (elapsed >= interval) {
-                        int currentQuality = meta.getPersistentDataContainer().getOrDefault(qualityKey,
-                                PersistentDataType.INTEGER, 0);
+            if (meta.getPersistentDataContainer().has(timestampKey, PersistentDataType.LONG)) {
+                long start = meta.getPersistentDataContainer().get(timestampKey, PersistentDataType.LONG);
+                long elapsed = now - start;
 
-                        // 현재 1성(0 or 1)이라고 가정.
-                        if (currentQuality == 0)
-                            currentQuality = 1;
+                // 10분(600,000ms)마다 1단계 상승
+                long interval = 600_000L;
+                if (elapsed >= interval) {
+                    int steps = (int) (elapsed / interval);
+                    int newQuality = Math.min(3, currentQuality + steps);
 
-                        if (currentQuality < 3) {
-                            // 경과된 시간만큼 등급 상승
-                            int steps = (int) (elapsed / interval);
-                            int newQuality = Math.min(3, currentQuality + steps);
-
-                            if (newQuality > currentQuality) {
-                                // 메타 업데이트
-                                FileConfiguration config = plugin.getConfigManager().getJobConfig("farmer");
-                                setQuality(item, newQuality);
-
-                                // 타임스탬프 리셋 (나머지 시간은 고려 X or 보존? 여기선 reset to CURRENT - remainder)
-                                // 즉, 25분 지났으면 2단계 오르고 5분 남음 -> start = now - 5min
-                                long remainder = elapsed % interval;
-                                meta = item.getItemMeta(); // setQuality Reload
-                                meta.getPersistentDataContainer().set(timestampKey, PersistentDataType.LONG,
-                                        now - remainder);
-                                item.setItemMeta(meta);
-                            }
-                        }
+                    if (newQuality > currentQuality) {
+                        setQuality(item, newQuality);
+                        // 타임스탬프 갱신 (잔여 시간 보존)
+                        meta = item.getItemMeta();
+                        meta.getPersistentDataContainer().set(timestampKey, PersistentDataType.LONG,
+                                now - (elapsed % interval));
+                        item.setItemMeta(meta);
                     }
-                } else {
-                    // 타임스탬프가 없으면 지금부터 시작
-                    meta.getPersistentDataContainer().set(timestampKey, PersistentDataType.LONG, now);
-                    item.setItemMeta(meta);
                 }
+            } else {
+                // 숙성 시작 시간 기록
+                meta.getPersistentDataContainer().set(timestampKey, PersistentDataType.LONG, now);
+                item.setItemMeta(meta);
+            }
+        }
+    }
+
+    /**
+     * 커스텀 음식 섭취 시 버프 적용
+     */
+    @EventHandler
+    public void onConsume(org.bukkit.event.player.PlayerItemConsumeEvent event) {
+        ItemStack item = event.getItem();
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null)
+            return;
+
+        NamespacedKey buffKey = new NamespacedKey(plugin, "food_buff");
+        if (meta.getPersistentDataContainer().has(buffKey, PersistentDataType.STRING)) {
+            String buffType = meta.getPersistentDataContainer().get(buffKey, PersistentDataType.STRING);
+            Player player = event.getPlayer();
+
+            if ("premium_regen".equals(buffType)) {
+                player.addPotionEffect(
+                        new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.REGENERATION, 200, 1)); // 10초
+                player.sendMessage("§a[주방] §f고급 요리의 기운으로 체력이 회복됩니다.");
+            } else if ("premium_strength".equals(buffType)) {
+                player.addPotionEffect(
+                        new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.STRENGTH, 600, 0)); // 30초
+                player.sendMessage("§a[주방] §f고급 요리의 기운으로 힘이 솟아납니다.");
             }
         }
     }

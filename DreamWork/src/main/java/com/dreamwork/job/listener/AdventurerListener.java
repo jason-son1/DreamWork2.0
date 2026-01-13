@@ -84,8 +84,20 @@ public class AdventurerListener implements Listener {
         // 3. Discovery logic
         if (event.getFrom().getChunk() != event.getTo().getChunk()) {
             plugin.getMissionManager().processEvent(player, MissionType.WALK, "new_chunk", 1);
+
+            // 지도 매핑 보상 (지도를 들고 새로운 청크 진입 시)
+            if (isHoldingMap(player)) {
+                plugin.getJobManager().giveReward(player, JobType.ADVENTURER, 2.0, 1.0);
+                plugin.getMissionManager().processEvent(player, MissionType.EXPLORE_MAP, "mapping", 1);
+            }
         }
         handlediscovery(player, level);
+    }
+
+    private boolean isHoldingMap(Player player) {
+        ItemStack main = player.getInventory().getItemInMainHand();
+        ItemStack off = player.getInventory().getItemInOffHand();
+        return (main.getType() == Material.FILLED_MAP || off.getType() == Material.FILLED_MAP);
     }
 
     private void applySpeedBoost(Player player, Material ground, int level) {

@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -57,6 +58,14 @@ public abstract class DreamGui implements InventoryHolder {
      * @param event 클릭 이벤트
      */
     public abstract void onClick(InventoryClickEvent event);
+
+    /**
+     * GUI 닫기 이벤트 처리 (선택적 구현)
+     * 
+     * @param event 닫기 이벤트
+     */
+    public void onClose(InventoryCloseEvent event) {
+    }
 
     /**
      * GUI 열기

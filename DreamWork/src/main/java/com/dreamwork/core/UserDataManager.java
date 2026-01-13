@@ -253,6 +253,8 @@ public class UserDataManager implements Listener {
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
+                connection.setAutoCommit(false); // 트랜잭션 시작
+
                 // 1. 직업 데이터 저장
                 String upsert = """
                         INSERT OR REPLACE INTO dw_job_data
@@ -284,17 +286,24 @@ public class UserDataManager implements Listener {
                         stmt.setString(2, data.getMissionId());
                         stmt.setInt(3, data.getProgress());
                         stmt.setString(4, data.getStatus().name());
-                        stmt.setLong(5, 0L); // timestamp fields TODO: needs impl in Data object
+                        stmt.setLong(5, 0L);
                         stmt.setLong(6, 0L);
                         stmt.addBatch();
                     }
                     stmt.executeBatch();
                 }
 
-                plugin.debug("플레이어 데이터 저장 완료: " + uuid);
+                connection.commit(); // 커밋
+                connection.setAutoCommit(true);
+                plugin.debug("플레이어 데이터 원자적 저장 완료: " + uuid);
 
             } catch (SQLException e) {
-                plugin.log(Level.SEVERE, "플레이어 데이터 저장 실패: " + uuid);
+                try {
+                    connection.rollback();
+                    connection.setAutoCommit(true);
+                } catch (SQLException ex) {
+                }
+                plugin.log(Level.SEVERE, "플레이어 데이터 저장 실패 (롤백됨): " + uuid);
                 e.printStackTrace();
             }
         });

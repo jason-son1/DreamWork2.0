@@ -172,39 +172,56 @@ public class ForgeGui extends DreamGui {
             // "롤백"은 복잡하므로, 일단 비워져있지 않으면 진행하되, 결과 나온 뒤 병합 시도하고 안되면 에러 출력.
         }
 
-        // 제작 시도
-        ItemStack result = provider.tryCreateAlloy(input1, input2);
+        // 제련 시작 애니메이션
+        inventory.setItem(PROCESS_BUTTON_SLOT,
+                createItem(Material.FLINT_AND_STEEL, "§6§l제련 중...", List.of("§7잠시만 기다려주세요...")));
 
-        if (result == null) {
-            player.sendMessage("§c유효한 합금 레시피가 아닙니다.");
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-            return;
-        }
-
-        // 결과물 병합 체크
-        if (currentOutput != null && !currentOutput.getType().isAir()) {
-            if (currentOutput.isSimilar(result)) {
-                int max = currentOutput.getMaxStackSize();
-                if (currentOutput.getAmount() + result.getAmount() <= max) {
-                    result.setAmount(currentOutput.getAmount() + result.getAmount());
-                } else {
-                    player.sendMessage("§c결과 슬롯 공간이 부족합니다.");
-                    return; // 재료 소모 안 함
-                }
-            } else {
-                player.sendMessage("§c결과 슬롯을 비워주세요.");
-                return; // 재료 소모 안 함
-            }
-        }
-
-        // 성공 - 재료 소모
+        // 입력 슬롯 아이템 임시 제거 (제작 중 소실 방지 및 시각 효과)
+        final ItemStack i1 = input1.clone();
+        final ItemStack i2 = input2.clone();
         input1.setAmount(input1.getAmount() - 1);
         input2.setAmount(input2.getAmount() - 1);
 
-        inventory.setItem(ALLOY_OUTPUT, result);
+        new org.bukkit.scheduler.BukkitRunnable() {
+            int ticks = 0;
 
-        player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_USE, 1.0f, 0.8f);
-        player.sendMessage("§a합금 제작에 성공했습니다!");
+            @Override
+            public void run() {
+                if (!player.isOnline() || player.getOpenInventory().getTopInventory() != inventory) {
+                    // 창을 닫으면 중단 및 아이템 반환 (안전장치)
+                    player.getInventory().addItem(i1, i2);
+                    cancel();
+                    return;
+                }
+
+                ticks++;
+                // 시각 효과: 화살표 색상 변경
+                if (ticks == 1)
+                    inventory.setItem(12, createGlassPane(Material.ORANGE_STAINED_GLASS_PANE));
+                if (ticks == 2)
+                    inventory.setItem(14, createGlassPane(Material.YELLOW_STAINED_GLASS_PANE));
+                if (ticks == 3)
+                    inventory.setItem(15, createGlassPane(Material.LIME_STAINED_GLASS_PANE));
+
+                if (ticks >= 4) {
+                    // 제작 시도
+                    ItemStack result = provider.tryCreateAlloy(i1, i2);
+                    if (result != null) {
+                        inventory.setItem(ALLOY_OUTPUT, result);
+                        player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_USE, 1.0f, 0.8f);
+                        player.sendMessage("§a합금 제작에 성공했습니다!");
+                    } else {
+                        // 레시피가 없거나 실패 시 (이미 provider에서 실패 결과가 나올 수 있음)
+                        player.sendMessage("§c제작에 실패했습니다.");
+                        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                    }
+
+                    // UI 복구
+                    renderAlloyTab();
+                    cancel();
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 10L); // 0.5초 간격
     }
 
     private void switchTab(Tab tab) {

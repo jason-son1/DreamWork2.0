@@ -5,8 +5,6 @@ import com.dreamwork.gui.DreamGui;
 import com.dreamwork.job.JobType;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
@@ -241,15 +239,45 @@ public class KitchenGui extends DreamGui {
      * 프리미엄 음식 생성
      */
     private ItemStack createPremiumFood(String cropId) {
-        ItemStack food = new ItemStack(Material.GOLDEN_APPLE, 1);
+        ItemStack food = new ItemStack(Material.GOLDEN_CARROT, 1);
         ItemMeta meta = food.getItemMeta();
-        meta.setDisplayName("§e★ 고급 요리");
-        meta.setLore(List.of(
-                "§73성 작물로 만든 특별한 요리",
-                "§a+8 포만감",
-                "§b재생 효과 10초"));
+        if (meta == null)
+            return food;
+
+        meta.setDisplayName("§e★ 고품질 " + getCropKoreanName(cropId));
+
+        // 버프 태그 부여 (FarmerListener에서 감지)
+        org.bukkit.NamespacedKey buffKey = new org.bukkit.NamespacedKey(plugin, "food_buff");
+        String buffType = "premium_regen";
+        if (cropId != null && cropId.contains("potato"))
+            buffType = "premium_strength";
+
+        meta.getPersistentDataContainer().set(buffKey, org.bukkit.persistence.PersistentDataType.STRING, buffType);
+
+        List<String> lore = new ArrayList<>();
+        lore.add("§73성 작물로 정성껏 만든 특별한 요리");
+        lore.add("§7");
+        if ("premium_regen".equals(buffType)) {
+            lore.add("§b[효과] 재생 II (10초)");
+        } else {
+            lore.add("§c[효과] 힘 I (30초)");
+        }
+
+        meta.setLore(lore);
         food.setItemMeta(meta);
         return food;
+    }
+
+    private String getCropKoreanName(String cropId) {
+        if (cropId == null)
+            return "요리";
+        if (cropId.contains("wheat"))
+            return "밀빵";
+        if (cropId.contains("potato"))
+            return "감자구이";
+        if (cropId.contains("carrot"))
+            return "당근샐러드";
+        return "요리";
     }
 
     /**

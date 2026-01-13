@@ -40,19 +40,14 @@ public class SixthSense extends BukkitRunnable {
             if (level >= 50)
                 range = 200;
 
-            // Structure Scan
-            // Warning: locateNearestStructure is main thread heavy if not careful.
-            // But we are in run() which is main thread? No, we should run this async if
-            // possible or use async method.
-            // But Bukkit API locate is main thread usually?
-            // Actually locateNearestStructure might be heavy.
-            // Optimization: Only run if player moved significantly? Or very long interval
-            // (60s).
-            // Plugin uses 1200 ticks (60s) interval.
-
             // Optimization: Skip check if player hasn't moved much
             if (hasMovedSignificantly(player)) {
-                checkForStructure(player, range, level);
+                // 비동기로 무거운 작업 실행
+                final int finalRange = range;
+                final int finalLevel = level;
+                org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                    checkForStructure(player, finalRange, finalLevel);
+                });
             }
         }
     }
@@ -132,13 +127,21 @@ public class SixthSense extends BukkitRunnable {
 
         // 육감 힌트 (Lv 20+)
         if (foundName != null && level >= 20) {
-            player.sendMessage("§5[육감] §d주변에서 " + foundName + "의 기운이 느껴집니다... (" + (int) minDst + "m)");
-            player.playSound(loc, org.bukkit.Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 0.5f);
+            final String finalName = foundName;
+            final double finalDst = minDst;
 
-            // 시각적 효과 (Lv 50+)
-            if (level >= 50 && minDst < 15) {
-                player.spawnParticle(org.bukkit.Particle.DRAGON_BREATH, loc.add(0, 1, 0), 10, 0.5, 0.5, 0.5, 0.05);
-            }
+            org.bukkit.Bukkit.getScheduler().runTask(plugin, () -> {
+                if (player.isOnline()) {
+                    player.sendMessage("§5[육감] §d주변에서 " + finalName + "의 기운이 느껴집니다... (" + (int) finalDst + "m)");
+                    player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 0.5f);
+
+                    // 시각적 효과 (Lv 50+)
+                    if (level >= 50 && finalDst < 15) {
+                        player.spawnParticle(org.bukkit.Particle.DRAGON_BREATH, player.getLocation().add(0, 1, 0), 10,
+                                0.5, 0.5, 0.5, 0.05);
+                    }
+                }
+            });
         }
     }
 }

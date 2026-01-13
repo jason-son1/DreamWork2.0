@@ -193,21 +193,65 @@ public class FisherListener implements Listener {
         double maxSize = 50.0;
         double size = minSize + (random.nextDouble() * (maxSize - minSize));
 
+        // 품질 결정 (40cm 이상 3성, 25cm 이상 2성)
+        int quality = 1;
+        if (size >= 40.0)
+            quality = 3;
+        else if (size >= 25.0)
+            quality = 2;
+
         // ItemManager 유틸리티 사용하여 데이터 및 로어 설정
         fish = plugin.getItemManager().setFishData(fish, size);
+        plugin.getItemManager().setItemQuality(fish, quality);
 
-        // 이름 접두사 등 추가 설정이 필요하면 여기서
+        // 이름 접두사 등 추가 설정
         ItemMeta meta = fish.getItemMeta();
+        String color = (quality == 3) ? "§6" : (quality == 2) ? "§a" : "§f";
         String koreanName = getKoreanFishName(type);
-        meta.setDisplayName("§f" + koreanName + " (" + String.format("%.1f", size) + "cm)");
-        // fishTypeKey 설정 (보상 처리를 위해)
+        meta.setDisplayName(color + koreanName + " (" + String.format("%.1f", size) + "cm)");
+
+        // PDC 데이터 (시간, 타입, 상태)
         meta.getPersistentDataContainer().set(fishTypeKey, PersistentDataType.STRING, type.name().toLowerCase());
-        // Live Fish NBT
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "catch_time"), PersistentDataType.LONG,
+                System.currentTimeMillis());
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "live_fish"), PersistentDataType.BYTE,
                 (byte) 1);
-        fish.setItemMeta(meta);
 
+        fish.setItemMeta(meta);
         caughtEntity.setItemStack(fish);
+    }
+
+    /**
+     * 생선 손질 (Filleting)
+     */
+    @EventHandler
+    public void onFillet(org.bukkit.event.player.PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        ItemStack item = event.getItem();
+        if (item == null || item.getType() == Material.AIR)
+            return;
+
+        // 웅크리고 생선을 들고 우클릭 시 손질
+        if (player.isSneaking() && event.getAction().name().contains("RIGHT_CLICK") && isFish(item.getType())) {
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null && meta.getPersistentDataContainer().has(new NamespacedKey(plugin, "live_fish"),
+                    PersistentDataType.BYTE)) {
+
+                event.setCancelled(true);
+
+                int quality = plugin.getItemManager().getQuality(item);
+                ItemStack fillet = new ItemStack(Material.COOKED_SALMON, quality); // 품질만큼 필렛 지급
+                ItemMeta fMeta = fillet.getItemMeta();
+                fMeta.setDisplayName("§f생선 필렛 (" + "★".repeat(quality) + ")");
+                fillet.setItemMeta(fMeta);
+
+                item.setAmount(item.getAmount() - 1);
+                player.getInventory().addItem(fillet);
+
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_SHEEP_SHEAR, 1.0f, 1.2f);
+                player.sendMessage("§b[어부] §f생선을 손질하여 필렛을 만들었습니다.");
+            }
+        }
     }
 
     private boolean isFish(Material mat) {

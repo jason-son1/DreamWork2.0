@@ -85,22 +85,58 @@ public class HunterListener implements Listener {
 
         // Stat Boost
         double maxHealth = 20.0;
-        if (entity.getAttribute(Attribute.MAX_HEALTH) != null) {
-            maxHealth = entity.getAttribute(Attribute.MAX_HEALTH).getBaseValue() * 2.0;
-            entity.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHealth);
+        var attribute = entity.getAttribute(Attribute.MAX_HEALTH);
+        if (attribute != null) {
+            maxHealth = attribute.getBaseValue() * 3.0; // 3배 강화
+            attribute.setBaseValue(maxHealth);
+            entity.setHealth(maxHealth);
         }
-        entity.setHealth(maxHealth);
 
-        // Visuals
-        entity.setCustomName("§c[Elite] §f" + entity.getName());
+        // 공격력 강화
+        var attackAttr = entity.getAttribute(Attribute.ATTACK_DAMAGE);
+        if (attackAttr != null) {
+            attackAttr.setBaseValue(attackAttr.getBaseValue() * 1.5);
+        }
+
+        // 비주얼
+        String title = "§c[Elite] ";
+        if (random.nextDouble() < 0.2)
+            title = "§4[Boss] "; // 20% 확률로 보스급
+
+        entity.setCustomName(title + "§f" + entity.getName());
         entity.setCustomNameVisible(true);
-        entity.setGlowing(true); // Optional
+        entity.setGlowing(true);
 
-        // Equipment (Simple)
-        if (entity.getEquipment() != null) {
-            entity.getEquipment().setItemInMainHand(new ItemStack(Material.IRON_SWORD));
-            entity.getEquipment().setItemInMainHandDropChance(0.0f);
+        // 장비 강화
+        var equipment = entity.getEquipment();
+        if (equipment != null) {
+            if (entity instanceof Zombie || entity instanceof Skeleton || entity instanceof Piglin) {
+                // 갑옷 세트 입히기
+                equipment.setHelmet(new ItemStack(Material.IRON_HELMET));
+                equipment.setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
+                equipment.setLeggings(new ItemStack(Material.IRON_LEGGINGS));
+                equipment.setBoots(new ItemStack(Material.IRON_BOOTS));
+
+                // 무기 강화
+                Material weapon = (entity instanceof Skeleton) ? Material.BOW : Material.IRON_SWORD;
+                ItemStack mainHand = new ItemStack(weapon);
+                mainHand.addUnsafeEnchantment(org.bukkit.enchantments.Enchantment.SHARPNESS, 2);
+                equipment.setItemInMainHand(mainHand);
+
+                // 드롭 확률 0% (어뷰징 방지)
+                equipment.setHelmetDropChance(0.0f);
+                equipment.setChestplateDropChance(0.0f);
+                equipment.setLeggingsDropChance(0.0f);
+                equipment.setBootsDropChance(0.0f);
+                equipment.setItemInMainHandDropChance(0.0f);
+            }
         }
+
+        // 상태 이상 효과 (영구)
+        entity.addPotionEffect(
+                new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, Integer.MAX_VALUE, 0));
+        entity.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.RESISTANCE,
+                Integer.MAX_VALUE, 0));
     }
 
     /**

@@ -137,5 +137,10 @@ public enum MissionType {
     /**
      * NPC 상호작용
      */
-    INTERACT_NPC
+    INTERACT_NPC,
+
+    /**
+     * 지도 탐험 (탐험가)
+     */
+    EXPLORE_MAP
 }

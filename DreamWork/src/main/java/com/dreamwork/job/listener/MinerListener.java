@@ -6,6 +6,7 @@ import com.dreamwork.mission.MissionType;
 import com.dreamwork.skill.impl.MinersTrance;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -31,8 +32,34 @@ public class MinerListener implements Listener {
     private final Random random = new Random();
     private MinersTrance minersTrance; // Injected or retrieved
 
+    private final NamespacedKey whetstoneKey;
+
     public MinerListener(DreamWorkPlugin plugin) {
         this.plugin = plugin;
+        this.whetstoneKey = new NamespacedKey(plugin, "whetstone_expiry");
+    }
+
+    /**
+     * 숫돌 적용 여부 및 만료 시간 확인
+     */
+    private boolean hasWhetstoneBuff(Player player) {
+        if (!player.getPersistentDataContainer().has(whetstoneKey, org.bukkit.persistence.PersistentDataType.LONG)) {
+            return false;
+        }
+        long expiry = player.getPersistentDataContainer().get(whetstoneKey,
+                org.bukkit.persistence.PersistentDataType.LONG);
+        return System.currentTimeMillis() < expiry;
+    }
+
+    /**
+     * 숫돌 버프 적용 (30분)
+     */
+    private void applyWhetstoneBuff(Player player) {
+        long durationMs = 30 * 60 * 1000L; // 30분
+        long expiry = System.currentTimeMillis() + durationMs;
+        player.getPersistentDataContainer().set(whetstoneKey, org.bukkit.persistence.PersistentDataType.LONG, expiry);
+        player.sendMessage("§e[광부] §f숫돌을 사용하여 곡괭이를 날카롭게 갈았습니다! (30분간 유지)");
+        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_GRINDSTONE_USE, 1.0f, 1.0f);
     }
 
     /**
@@ -148,10 +175,14 @@ public class MinerListener implements Listener {
             tranceExpMultiplier = minersTrance.getExpMultiplier(player);
         }
 
-        double finalExp = exp * tranceExpMultiplier;
+        // 숫돌 버프 (경험치/돈 20% 추가 보너스)
+        double whetstoneMultiplier = hasWhetstoneBuff(player) ? 1.2 : 1.0;
+
+        double finalExp = exp * tranceExpMultiplier * whetstoneMultiplier;
+        double finalMoney = money * whetstoneMultiplier;
 
         // 3. 보상 지급
-        plugin.getJobManager().giveReward(player, JobType.MINER, finalExp, money);
+        plugin.getJobManager().giveReward(player, JobType.MINER, finalExp, finalMoney);
 
         // 4. 미션 이벤트 트리거
         plugin.getMissionManager().processEvent(player, MissionType.BREAK, materialKey, 1);
@@ -232,7 +263,23 @@ public class MinerListener implements Listener {
         }
 
         ItemStack item = event.getItem();
-        if (item == null || !item.getType().name().contains("PICKAXE")) {
+        if (item == null || item.getType() == Material.AIR) {
+            return;
+        }
+
+        String dwId = plugin.getItemManager().getDreamItemId(item);
+
+        // 숫돌 상호작용
+        if ("whetstone".equals(dwId)) {
+            applyWhetstoneBuff(player);
+            if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+                item.setAmount(item.getAmount() - 1);
+            }
+            event.setCancelled(true);
+            return;
+        }
+
+        if (!item.getType().name().contains("PICKAXE")) {
             return;
         }
 
