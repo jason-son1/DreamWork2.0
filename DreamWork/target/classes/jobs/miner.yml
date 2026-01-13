@@ -1,109 +1,162 @@
-# ============================================
-#        광부 직업 설정 파일
-# ============================================
-# 모든 경험치/돈 값은 기본값이며, 설정 파일에서 쉽게 조정 가능
+# 광부 (Miner) 설정 파일
+# Plan/직업/광부 변경.md 및 세부 테이블.md 기반
 
-# 채굴 가능 광물 및 보상
-materials:
+# 레벨업 경험치 공식 (예시)
+level-up-curve: "100 * Math.pow(level, 1.5) + 50"
+
+# 1. 경험치 및 보상 테이블
+# 대상 블록: [경험치, 돈, 설명]
+rewards:
+  # Tier 0 (매크로 방지, 미미한 보상)
   stone:
-    exp: 0.5
-    money: 0.1
-  cobblestone:
-    exp: 0.3
-    money: 0.05
+    exp: 0.1
+    money: 0.0
+  deepslate:
+    exp: 0.1
+    money: 0.0
+  netherrack:
+    exp: 0.1
+    money: 0.0
+    
+  # Tier 1 (초반 주력)
   coal_ore:
-    exp: 3.0
-    money: 1.0
+    exp: 5.0
+    money: 2.0
   deepslate_coal_ore:
-    exp: 3.5
-    money: 1.2
+    exp: 5.0
+    money: 2.0
   iron_ore:
     exp: 5.0
     money: 2.0
   deepslate_iron_ore:
-    exp: 6.0
-    money: 2.5
+    exp: 5.0
+    money: 2.0
   copper_ore:
-    exp: 4.0
-    money: 1.5
+    exp: 5.0
+    money: 2.0
   deepslate_copper_ore:
-    exp: 4.5
-    money: 1.8
+    exp: 5.0
+    money: 2.0
+  raw_iron_block: # 원석 블록
+    exp: 45.0
+    money: 18.0
+  raw_copper_block:
+    exp: 45.0
+    money: 18.0
+
+  # Tier 2 (중반 주력)
   gold_ore:
-    exp: 8.0
-    money: 4.0
-  deepslate_gold_ore:
-    exp: 9.0
-    money: 4.5
-  redstone_ore:
-    exp: 6.0
-    money: 3.0
-  deepslate_redstone_ore:
-    exp: 7.0
-    money: 3.5
-  lapis_ore:
-    exp: 7.0
-    money: 3.5
-  deepslate_lapis_ore:
-    exp: 8.0
-    money: 4.0
-  emerald_ore:
     exp: 15.0
-    money: 8.0
-  deepslate_emerald_ore:
-    exp: 18.0
-    money: 10.0
+    money: 5.0
+  deepslate_gold_ore:
+    exp: 15.0
+    money: 5.0
+  nether_gold_ore:
+    exp: 15.0
+    money: 5.0
+  redstone_ore:
+    exp: 15.0
+    money: 5.0
+  deepslate_redstone_ore:
+    exp: 15.0
+    money: 5.0
+  lapis_ore:
+    exp: 15.0
+    money: 5.0
+  deepslate_lapis_ore:
+    exp: 15.0
+    money: 5.0
+
+  # Tier 3 (고수익)
   diamond_ore:
-    exp: 20.0
-    money: 12.0
-  deepslate_diamond_ore:
-    exp: 25.0
-    money: 15.0
-  ancient_debris:
     exp: 50.0
     money: 30.0
-  nether_quartz_ore:
-    exp: 4.0
-    money: 1.5
-  nether_gold_ore:
-    exp: 5.0
-    money: 2.5
+    broadcast: true # 발견 시 메시지
+  deepslate_diamond_ore:
+    exp: 50.0
+    money: 30.0
+    broadcast: true
+  emerald_ore:
+    exp: 50.0
+    money: 30.0
+    broadcast: true
+  deepslate_emerald_ore:
+    exp: 50.0
+    money: 30.0
+    broadcast: true
 
-# 특수 드롭 확률
-special_drops:
-  # 미지의 광석 드롭 확률 (희귀 광물 채굴 시)
-  unknown_ore_chance: 0.05
-  # 드림스톤 드롭 확률 (매우 희귀)
-  dreamstone_chance: 0.005
+  # Tier 4 (최고 보상)
+  ancient_debris:
+    exp: 150.0
+    money: 100.0
+    broadcast: true
 
-# 스킬 설정
+# 특수 자원 드롭 확률 (기본값)
+# 공식: P_drop = P_base * (1 + Level * 0.01) * Multiplier_trance
+drops:
+  unknown_ore:
+    base_chance: 0.05 # 5%
+    item_id: "unknown_ore"
+  dream_stone:
+    base_chance: 0.001 # 0.1%
+    item_id: "dream_stone"
+
+# 2. 스킬 설정
 skills:
+  # 액티브: 광맥 탐지 (Ore Radar)
   ore_radar:
     name: "광맥 탐지"
-    unlock-level: 10
-    cooldown: 60
-    range: 16
-    description: "주변 광물의 위치를 알려줍니다."
-    
+    # 레벨별 설정 (Lv: [Radius, Cooldown])
+    levels: 
+      1: 
+        radius: 10
+        cooldown: 60
+        detail: "existence" # 유무만 표시
+      10: 
+        radius: 20
+        cooldown: 45
+        detail: "rough" # 대략적 수량
+      30: 
+        radius: 30
+        cooldown: 30
+        detail: "exact" # 정확한 수량 + 방향
+      50: 
+        radius: 30
+        cooldown: 15
+        detail: "rare" # 드림스톤 탐지 + 발광
+
+  # 패시브: 지하 적응 (Cave Adaptation)
   cave_adaptation:
     name: "지하 적응"
-    unlock-level: 25
-    description: "Y=0 이하에서 야간 투시 효과를 받습니다."
-    
+    condition:
+      min_y: 0 # Y좌표 0 이하
+      worlds: ["world_nether"] # 또는 네더
+    levels:
+      10:
+        fall_damage_reduction: 0.10
+      30:
+        fall_damage_reduction: 0.20
+        effects:
+          - "FAST_DIGGING:1" # 성급함 I
+        lava_damage_reduction: 0.10
+      50:
+        fall_damage_reduction: 0.30
+        effects:
+          - "FAST_DIGGING:2" # 성급함 II
+        lava_save: true # 용암 화염 저항 (쿨 5분)
+        lava_save_cooldown: 300
+
+  # 패시브: 광부의 몰입 (Miner's Trance)
   miners_trance:
     name: "광부의 몰입"
-    unlock-level: 50
-    description: "연속 채굴 시 경험치와 드롭률이 증가합니다."
-    trance_stages:
-      - combo: 10
-        exp_bonus: 0.1
-        name: "1단계"
-      - combo: 30
-        exp_bonus: 0.2
-        drop_bonus: 0.1
-        name: "2단계"
-      - combo: 60
-        exp_bonus: 0.3
-        drop_bonus: 0.2
-        rare_chance_bonus: 0.05
-        name: "3단계"
+    chunk_stay_check_interval: 20 # 1초(20틱)마다 체크
+    stages:
+      1:
+        time: 600 # 10분 (600초)
+        exp_multiplier: 1.1
+      2:
+        time: 1200 # 20분
+        drop_multiplier: 1.0 # (Fortune 로직 별도 구현 필요, 여기선 단순히 명시)
+      3:
+        time: 1800 # 30분
+        rare_drop_multiplier: 2.0 # 드림스톤 확률 2배

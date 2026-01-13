@@ -1,104 +1,66 @@
-# ============================================
-#        DreamWork 작물 아이템 정의
-# ============================================
+# 농부 (Farmer) 작물 설정
 
 items:
-  # ========== 감자 ==========
-  potato_1star:
-    material: POTATO
-    name: "&7⭐ 감자"
-    lore:
-      - "&7평범한 감자입니다."
-    quality: 1
-    
-  potato_2star:
-    material: POTATO
-    name: "&a⭐⭐ 양질의 감자"
-    lore:
-      - "&7잘 자란 감자입니다."
-      - "&a품질 보너스 +50%"
-    quality: 2
-    
-  potato_3star:
-    material: POTATO
-    name: "&e⭐⭐⭐ 명품 감자"
-    lore:
-      - "&7완벽하게 자란 감자입니다."
-      - "&e품질 보너스 +100%"
-    quality: 3
-    glowing: true
-    
-  # ========== 당근 ==========
-  carrot_1star:
-    material: CARROT
-    name: "&7⭐ 당근"
-    lore:
-      - "&7평범한 당근입니다."
-    quality: 1
-    
-  carrot_2star:
-    material: CARROT
-    name: "&a⭐⭐ 양질의 당근"
-    lore:
-      - "&7잘 자란 당근입니다."
-      - "&a품질 보너스 +50%"
-    quality: 2
-    
-  carrot_3star:
-    material: CARROT
-    name: "&e⭐⭐⭐ 명품 당근"
-    lore:
-      - "&7완벽하게 자란 당근입니다."
-      - "&e품질 보너스 +100%"
-    quality: 3
-    glowing: true
-    
-  # ========== 밀 ==========
-  wheat_1star:
-    material: WHEAT
-    name: "&7⭐ 밀"
-    lore:
-      - "&7평범한 밀입니다."
-    quality: 1
-    
-  wheat_2star:
-    material: WHEAT
-    name: "&a⭐⭐ 양질의 밀"
-    lore:
-      - "&7잘 자란 밀입니다."
-      - "&a품질 보너스 +50%"
-    quality: 2
-    
+  # 밀
   wheat_3star:
     material: WHEAT
-    name: "&e⭐⭐⭐ 명품 밀"
+    name: "&6[3성] 황금빛 밀"
     lore:
-      - "&7완벽하게 자란 밀입니다."
-      - "&e품질 보너스 +100%"
-    quality: 3
+      - "&7최고급 토양에서 자란 밀입니다."
+      - "&7제빵용으로 최고의 품질을 자랑합니다."
+    pdc_data:
+      type: "crop"
+      id: "wheat_3star"
+      quality: 3
     glowing: true
-    
-  # ========== 비트 ==========
-  beetroot_1star:
-    material: BEETROOT
-    name: "&7⭐ 비트"
+    custom_model_data: 3001
+
+  wheat_2star:
+    material: WHEAT
+    name: "&e[2성] 싱싱한 밀"
     lore:
-      - "&7평범한 비트입니다."
-    quality: 1
-    
-  beetroot_2star:
-    material: BEETROOT
-    name: "&a⭐⭐ 양질의 비트"
+      - "&7알곡이 꽉 찬 밀입니다."
+    pdc_data:
+      type: "crop"
+      id: "wheat_2star"
+      quality: 2
+    glowing: false
+    custom_model_data: 3002
+
+  # 감자
+  potato_3star:
+    material: POTATO
+    name: "&6[3성] 왕 감자"
     lore:
-      - "&7잘 자란 비트입니다."
-      - "&a품질 보너스 +50%"
-    quality: 2
-    
-  beetroot_3star:
-    material: BEETROOT
-    name: "&e⭐⭐⭐ 명품 비트"
-    lore:
-      - "&7완벽하게 자란 비트입니다."
-      - "&e품질 보너스 +100%"
-    quality: 3
+      - "&7구워 먹으면 천상의 맛이 납니다."
+    pdc_data:
+      type: "crop"
+      id: "potato_3star"
+      quality: 3
     glowing: true
+    custom_model_data: 3003
+
+  # 비료 아이템
+  quick_gro:
+    material: BONE_MEAL
+    name: "&a⚡ 속성 비료"
+    lore:
+      - "&7작물에 뿌리면 성장 속도가 빨라집니다."
+      - "&7(우클릭하여 사용)"
+    pdc_data:
+      type: "fertilizer"
+      id: "quick_gro"
+    glowing: true
+    custom_model_data: 3101
+
+  quality_compost:
+    material: BONE_MEAL
+    name: "&6⭐ 품질 퇴비"
+    lore:
+      - "&7작물의 품질을 높여줍니다."
+      - "&7(우클릭하여 사용)"
+    pdc_data:
+      type: "fertilizer"
+      id: "quality_compost"
+    glowing: true
+    custom_model_data: 3102

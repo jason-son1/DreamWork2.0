@@ -1,8 +1,12 @@
 package com.dreamwork.mission;
 
 import com.dreamwork.DreamWorkPlugin;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
+import com.dreamwork.job.JobType;
+import org.bukkit.Bukkit;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -10,19 +14,24 @@ import java.util.logging.Level;
 /**
  * 미션 관리자
  * 
- * 미션 템플릿을 로드하고 플레이어의 미션 진행도를 관리합니다.
+ * 미션 시스템의 핵심 로직을 담당합니다.
+ * 미션 로드, 이벤트 처리, 진행도 관리, 보상 지급, 체인 시스템을 처리합니다.
  * 
  * @author DreamWork Team
  */
 public class MissionManager {
 
     private final DreamWorkPlugin plugin;
+    private final MissionLoader missionLoader;
+    private final ConditionChecker conditionChecker;
 
     // 미션 템플릿 캐시 (ID -> Template)
     private final Map<String, MissionTemplate> missionCache = new HashMap<>();
 
     public MissionManager(DreamWorkPlugin plugin) {
         this.plugin = plugin;
+        this.missionLoader = new MissionLoader(plugin);
+        this.conditionChecker = new ConditionChecker(plugin);
     }
 
     /**
@@ -30,83 +39,14 @@ public class MissionManager {
      */
     public void loadMissions() {
         missionCache.clear();
-
-        Map<String, FileConfiguration> missionConfigs = plugin.getConfigManager().getAllMissionConfigs();
-
-        for (Map.Entry<String, FileConfiguration> entry : missionConfigs.entrySet()) {
-            String fileName = entry.getKey();
-            FileConfiguration config = entry.getValue();
-
-            if (config == null)
-                continue;
-
-            // 미션 섹션 로드
-            for (String missionId : config.getKeys(false)) {
-                if (config.isConfigurationSection(missionId)) {
-                    loadMission(missionId, config.getConfigurationSection(missionId));
-                }
-            }
-        }
-
+        missionCache.putAll(missionLoader.loadAllMissions());
         plugin.log(Level.INFO, "미션 " + missionCache.size() + "개 로드 완료");
     }
 
     /**
-     * 개별 미션 로드
+     * 미션 수락 (강제 시작 등)
      */
-    private void loadMission(String id, ConfigurationSection section) {
-        if (section == null)
-            return;
-
-        try {
-            MissionTemplate template = new MissionTemplate();
-            template.setId(id);
-
-            // 기본 정보
-            template.setDisplayName(translateColors(section.getString("display_name", id)));
-            template.setType(MissionType.valueOf(
-                    section.getString("type", "BREAK").toUpperCase()));
-            template.setTargets(section.getStringList("target"));
-            template.setAmount(section.getInt("amount", 1));
-
-            // 조건
-            template.setConditions(section.getStringList("conditions"));
-
-            // 보상
-            ConfigurationSection rewardsSection = section.getConfigurationSection("rewards");
-            if (rewardsSection != null) {
-                template.setRewardMoney(rewardsSection.getDouble("money", 0));
-                template.setRewardItems(rewardsSection.getStringList("items"));
-
-                ConfigurationSection jobExpSection = rewardsSection.getConfigurationSection("job_exp");
-                if (jobExpSection != null) {
-                    Map<String, Double> jobExp = new HashMap<>();
-                    for (String job : jobExpSection.getKeys(false)) {
-                        jobExp.put(job, jobExpSection.getDouble(job));
-                    }
-                    template.setRewardJobExp(jobExp);
-                }
-            }
-
-            // 연계 미션
-            template.setNextMission(section.getString("next_mission"));
-
-            // 초기화 주기
-            String resetCycle = section.getString("reset_cycle", "ONE_TIME");
-            template.setResetCycle(resetCycle);
-
-            missionCache.put(id, template);
-            plugin.debug("미션 로드됨: " + id);
-
-        } catch (Exception e) {
-            plugin.log(Level.WARNING, "미션 로드 실패: " + id + " - " + e.getMessage());
-        }
-    }
-
-    /**
-     * 미션 수락
-     */
-    public void acceptMission(org.bukkit.entity.Player player, String missionId) {
+    public void acceptMission(Player player, String missionId) {
         MissionTemplate template = getMission(missionId);
         if (template == null)
             return;
@@ -114,130 +54,219 @@ public class MissionManager {
         com.dreamwork.core.UserData userData = plugin.getUserDataManager().getUserData(player);
         com.dreamwork.mission.PlayerMissionData data = userData.getOrCreateMission(missionId);
 
-        // 이미 시작했거나 완료한 경우 무시
+        // 이미 완료했거나 진행 중이면 무시
         if (data.getStatus() != com.dreamwork.mission.MissionStatus.NOT_STARTED) {
             return;
         }
 
         data.setStatus(com.dreamwork.mission.MissionStatus.IN_PROGRESS);
-        player.sendMessage("§a[미션] §f" + template.getDisplayName() + " §a미션을 수락했습니다!");
+        player.sendMessage("§a[미션] §f" + template.getDisplayName() + " §a미션이 시작되었습니다!");
     }
 
     /**
      * 미션 이벤트 처리
-     * 직업 리스너에서 호출됩니다.
+     * 리스너에서 호출되어 미션 진행도를 업데이트합니다.
      */
-    public void processEvent(org.bukkit.entity.Player player, MissionType type, String target, int amount) {
+    /**
+     * 미션 이벤트 처리
+     * 리스너에서 호출되어 미션 진행도를 업데이트합니다.
+     */
+    public void processEvent(Player player, MissionType type, String target, int amount) {
+        processEvent(player, type, target, amount, null);
+    }
+
+    public void processEvent(Player player, MissionType type, String target, int amount, Map<String, Object> context) {
         com.dreamwork.core.UserData userData = plugin.getUserDataManager().getUserData(player);
 
-        // 진행 중인 모든 미션 확인
-        for (com.dreamwork.mission.PlayerMissionData data : userData.getAllMissions().values()) {
-            if (data.getStatus() != com.dreamwork.mission.MissionStatus.IN_PROGRESS) {
+        // 유저가 가진 모든 미션 중 '진행 중'인 것만 체크
+        for (PlayerMissionData data : userData.getAllMissions().values()) {
+            if (data.getStatus() != MissionStatus.IN_PROGRESS)
                 continue;
-            }
 
             MissionTemplate template = getMission(data.getMissionId());
             if (template == null)
                 continue;
 
-            // 미션 타입 일치 확인
+            // 1. 미션 타입 확인
             if (template.getType() != type)
                 continue;
 
-            // 타겟 일치 확인
-            if (!template.getTargets().contains(target) && !template.getTargets().contains("any")) {
+            // 2. 타겟(대상) 확인
+            if (!template.matchesTarget(target))
                 continue;
-            }
 
-            // 진행도 업데이트
+            // 3. 조건(Condition) 확인 - 기술/하드코어 미션용
+            if (!conditionChecker.check(player, template, context))
+                continue;
+
+            // 4. 진행도 업데이트
+            // UserData.updateMissionProgress 내부에서 완료 체크까지 수행함
             userData.updateMissionProgress(data.getMissionId(), amount, template.getAmount());
 
-            // 완료 체크 (UserData.updateMissionProgress에서 상태 변경됨)
-            if (data.getStatus() == com.dreamwork.mission.MissionStatus.COMPLETED) {
-                // 완료 알림
-                player.sendTitle("§a미션 완료!", "§f" + template.getDisplayName(), 10, 70, 20);
-                player.playSound(player.getLocation(), org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
-                player.sendMessage("§a[미션] §f" + template.getDisplayName() + " §7완료! 보상을 수령하세요.");
+            // 5. 실시간 진행 상황 알림 (Actionbar)
+            sendProgressActionbar(player, template, data.getProgress());
 
-                // 자동 보상 지급 (설정에 따라 변경 가능)
-                if (true) {
-                    completeMission(player, data.getMissionId());
-                }
+            // 6. 완료 달성 시 처리
+            if (data.getStatus() == MissionStatus.COMPLETED) {
+                handleMissionCompletion(player, template, data);
             }
         }
     }
 
     /**
-     * 미션 완료 및 보상 지급
+     * 진행 상황 액션바 출력
      */
-    public void completeMission(org.bukkit.entity.Player player, String missionId) {
-        com.dreamwork.core.UserData userData = plugin.getUserDataManager().getUserData(player);
-        com.dreamwork.mission.PlayerMissionData data = userData.getMission(missionId);
+    private void sendProgressActionbar(Player player, MissionTemplate template, int current) {
+        // 예: [미션] 석탄 채굴: 5/10 (+1)
+        String msg = String.format("§e[미션] §f%s: §a%d§7/§a%d",
+                template.getDisplayName(), current, template.getAmount());
+        player.sendTitle("", msg, 0, 40, 10);
+    }
 
-        if (data == null || data.getStatus() != com.dreamwork.mission.MissionStatus.COMPLETED) {
-            return;
-        }
+    /**
+     * 미션 완료 처리 (보상 지급 전 단계)
+     */
+    private void handleMissionCompletion(Player player, MissionTemplate template, PlayerMissionData data) {
+        // 성공 이펙트
+        player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
+        player.sendTitle("§a미션 완료!", "§f" + template.getDisplayName(), 10, 70, 20);
+        player.sendMessage("§a[미션] §f" + template.getDisplayName() + " §7완료! 보상이 지급됩니다.");
 
+        // 자동 보상 지급
+        completeMission(player, template.getId());
+    }
+
+    /**
+     * 최종 보상 지급 및 연계(체인) 처리
+     */
+    public void completeMission(Player player, String missionId) {
         MissionTemplate template = getMission(missionId);
         if (template == null)
             return;
 
-        // 보상 지급
+        com.dreamwork.core.UserData userData = plugin.getUserDataManager().getUserData(player);
+        PlayerMissionData data = userData.getMission(missionId);
+
+        if (data == null || data.getStatus() == MissionStatus.CLAIMED)
+            return;
+
+        // 1. 단순 보상 (돈, 아이템, 경험치)
+        giveSimpleRewards(player, template);
+
+        // 2. 복합 보상 (커맨드, 버프, 칭호 등)
+        giveComplexRewards(player, template);
+
+        // 3. 상태 변경 (CLAIMED)
+        data.setStatus(MissionStatus.CLAIMED);
+
+        // 4. 연계 미션(Chain/Next Tier) 자동 수락
+        String nextMissionId = resolveNextMissionId(template);
+        if (nextMissionId != null) {
+            // 다음 미션 템플릿 존재 여부 확인
+            if (missionCache.containsKey(nextMissionId)) {
+                acceptMission(player, nextMissionId);
+                player.sendMessage("§e[!] §f다음 단계 미션이 개방되었습니다!");
+            }
+        }
+    }
+
+    /**
+     * 다음 미션 ID 찾기
+     * next_mission 필드가 "tier_2" 처럼 되어있으면 "chainId_tier_2"로 변환
+     */
+    private String resolveNextMissionId(MissionTemplate template) {
+        String next = template.getNextMission();
+        if (next == null)
+            return null;
+
+        // 이미 전체 ID라면 그대로 반환
+        if (missionCache.containsKey(next))
+            return next;
+
+        // 체인 시스템이라면 prefix 붙여서 시도
+        if (template.getChainId() != null) {
+            String chainedId = template.getChainId() + "_" + next;
+            if (missionCache.containsKey(chainedId))
+                return chainedId;
+        }
+
+        return null;
+    }
+
+    private void giveSimpleRewards(Player player, MissionTemplate template) {
+        // 돈
         if (template.getRewardMoney() > 0) {
             plugin.getJobManager().giveMoney(player, template.getRewardMoney());
             player.sendMessage("§e💰 보상: §f" + template.getRewardMoney() + "G");
         }
 
-        // 아이템 보상
+        // 아이템
         for (String itemId : template.getRewardItems()) {
             org.bukkit.inventory.ItemStack item = plugin.getItemManager().createItem(itemId, 1);
             if (item != null) {
                 player.getInventory().addItem(item);
-                player.sendMessage("§e🎁 보상: §f"
-                        + (item.getItemMeta().hasDisplayName() ? item.getItemMeta().getDisplayName() : itemId));
             }
         }
 
-        // 직업 경험치 보상
-        if (template.getRewardJobExp() != null) {
-            for (Map.Entry<String, Double> entry : template.getRewardJobExp().entrySet()) {
-                com.dreamwork.job.JobType jobType = com.dreamwork.job.JobType.fromConfigKey(entry.getKey());
-                if (jobType != null) {
-                    plugin.getJobManager().addExperience(player, jobType, entry.getValue());
-                    player.sendMessage("§e✨ 보상: §f" + jobType.getDisplayName() + " 경험치 +" + entry.getValue());
+        // 직업 경험치
+        for (Map.Entry<String, Double> entry : template.getRewardJobExp().entrySet()) {
+            JobType job = JobType.fromConfigKey(entry.getKey());
+            if (job != null) {
+                plugin.getJobManager().addExperience(player, job, entry.getValue());
+                player.sendMessage("§e✨ 보상: §f" + job.getDisplayName() + " 경험치 +" + entry.getValue());
+            }
+        }
+    }
+
+    private void giveComplexRewards(Player player, MissionTemplate template) {
+        // 커맨드 실행
+        if (template.getRewardCommands() != null) {
+            for (String cmd : template.getRewardCommands()) {
+                String processed = cmd.replace("%player%", player.getName());
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), processed);
+            }
+        }
+
+        // 버프 (PotionEffect)
+        if (template.getRewardBuffs() != null) {
+            for (String buffStr : template.getRewardBuffs()) {
+                try {
+                    // FORMAT: EFFECT_TYPE:LEVEL:DURATION(seconds)
+                    String[] parts = buffStr.split(":");
+                    PotionEffectType type = PotionEffectType.getByName(parts[0].toUpperCase());
+                    int amplifier = Integer.parseInt(parts[1]);
+                    int duration = Integer.parseInt(parts[2]) * 20; // tick 변환
+
+                    if (type != null) {
+                        player.addPotionEffect(new PotionEffect(type, duration, amplifier));
+                    }
+                } catch (Exception e) {
+                    plugin.log(Level.WARNING, "버프 보상 적용 실패: " + buffStr);
                 }
             }
         }
 
-        // 상태 변경
-        data.setStatus(com.dreamwork.mission.MissionStatus.CLAIMED);
-
-        // 연계 미션 자동 수락
-        if (template.getNextMission() != null) {
-            acceptMission(player, template.getNextMission());
+        // 타이틀
+        if (template.getRewardTitle() != null || template.getRewardSubtitle() != null) {
+            player.sendTitle(
+                    template.getRewardTitle() != null ? template.getRewardTitle() : "",
+                    template.getRewardSubtitle() != null ? template.getRewardSubtitle() : "",
+                    10, 70, 20);
         }
     }
 
-    /**
-     * 미션 템플릿 가져오기
-     */
     public MissionTemplate getMission(String id) {
         return missionCache.get(id);
     }
 
-    /**
-     * 모든 미션 ID 목록
-     */
-    public Set<String> getAllMissionIds() {
-        return new HashSet<>(missionCache.keySet());
+    public Collection<MissionTemplate> getAllMissions() {
+        return missionCache.values();
     }
 
     /**
-     * 색상 코드 변환
+     * 모든 미션 ID 목록 (호환성 유지)
      */
-    private String translateColors(String text) {
-        if (text == null)
-            return "";
-        return text.replace("&", "§");
+    public Set<String> getAllMissionIds() {
+        return new HashSet<>(missionCache.keySet());
     }
 }

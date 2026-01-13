@@ -1,0 +1,26 @@
+# 요리사 대화 스크립트
+chef:
+  start: "greeting"
+  nodes:
+    greeting:
+      speaker: "요리사"
+      text: "&f어서 오세요! 오늘은 무엇을 드릴까요?"
+      options:
+        - text: "주방을 이용하고 싶어요."
+          action: "OPEN_GUI:kitchen"
+        - text: "맛있는 요리 추천해주세요."
+          next: "recommend"
+        - text: "안녕히 계세요."
+          next: "farewell"
+    recommend:
+      speaker: "요리사"
+      text: "&f오늘의 추천은 &e황금 당근 스튜&f입니다! 직접 만들어보시는 건 어때요?"
+      options:
+        - text: "만들어볼게요!"
+          action: "OPEN_GUI:kitchen"
+        - text: "다음에 할게요."
+          next: "farewell"
+    farewell:
+      speaker: "요리사"
+      text: "&f맛있는 하루 되세요~"
+      options: []

@@ -1,0 +1,33 @@
+title: "&0메인 대시보드"
+size: 27
+fill_item: GRAY_STAINED_GLASS_PANE
+
+items:
+  10:
+    name: "&e직업 정보"
+    material: IRON_PICKAXE
+    lore:
+      - "&7현재 직업 정보를 확인합니다."
+      - "&e클릭하여 이동"
+    action: 
+      - "SOUND:UI_BUTTON_CLICK"
+      - "OPEN:job_detail"
+  12:
+    name: "&b내 정보"
+    material: PLAYER_HEAD
+    lore:
+      - "&7플레이어: &f%player%"
+      - "&7등급: &f시민"
+    action: "SOUND:UI_BUTTON_CLICK"
+  14:
+    name: "&a미션 게시판"
+    material: PAPER
+    lore:
+      - "&7수행 가능한 미션을 확인합니다."
+    action:
+      - "SOUND:UI_BUTTON_CLICK"
+      - "OPEN:mission_board"
+  16:
+    name: "&c닫기"
+    material: BARRIER
+    action: "CLOSE"

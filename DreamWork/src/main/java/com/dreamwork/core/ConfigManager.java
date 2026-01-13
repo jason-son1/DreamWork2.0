@@ -277,6 +277,13 @@ public class ConfigManager {
         return new HashMap<>(missionConfigs);
     }
 
+    /**
+     * 모든 GUI 설정 반환
+     */
+    public Map<String, FileConfiguration> getAllGuiConfigs() {
+        return new HashMap<>(guiConfigs);
+    }
+
     // ==================== 헬퍼 메서드 ====================
 
     /**

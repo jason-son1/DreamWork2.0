@@ -52,6 +52,23 @@ actionbar:
   # 액션바 표시 형식
   format: "&e+{exp} Exp &6(+{money}G) &7| &f{job} Lv.{level} &a[{progress_bar}] &7({percent}%)"
 
+# NPC 이름 설정 (Citizens 연동용)
+npcs:
+  blacksmith: "대장장이"     # 대장간 GUI
+  chef: "요리사"             # 주방 GUI
+  fisher: "낚시꾼"           # 어시장 GUI
+  explorer: "탐험가"         # 지도 상점 GUI
+  job_master: "직업 마스터"  # 직업 전직/상세 GUI
+
+# 직업 칭호 (LuckPerms 연동용)
+# {job}은 직업 이름으로 대체됩니다.
+job-titles:
+  10: "&8[&7견습 {job}&8]"
+  25: "&2[&a노련한 {job}&2]"
+  50: "&9[&b숙련 {job}&9]"
+  75: "&5[&d대가 {job}&5]"
+  100: "&6[&e전설의 {job}&6]"
+
 # 레벨업 알림 설정
 levelup:
   # 타이틀 표시

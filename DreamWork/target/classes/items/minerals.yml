@@ -1,93 +1,42 @@
-# ============================================
-#        DreamWork 커스텀 아이템 정의
-# ============================================
-# 광물 및 광부 관련 아이템
+# 광부 (Miner) 아이템 설정
 
 items:
-  # ========== 미지의 광석 ==========
+  # 미지의 광석 (가챠 아이템)
   unknown_ore:
-    material: COAL
-    name: "&d✨ 미지의 광석"
+    material: FLINT
+    name: "&8[&7?&8] &f미지의 광석"
     lore:
-      - "&7정체를 알 수 없는 신비로운 광석입니다."
-      - "&7"
-      - "&e대장간에서 감정할 수 있습니다."
-    quality: 0
-    glowing: true
-    
-  # ========== 드림스톤 ==========
+      - "&7표면이 검게 그을린 정체불명의 광석입니다."
+      - "&7대장장이에게 가져가면 감정할 수 있습니다."
+      - ""
+      - "&e[우클릭] &7하여 직접 닦아보기"
+    pdc_data:
+      type: "mineral"
+      id: "unknown_ore"
+    custom_model_data: 2001
+
+  # 드림 스톤 (희귀 재화)
   dreamstone:
     material: AMETHYST_SHARD
-    name: "&b⭐ 드림스톤"
+    name: "&d&l⚡ 드림 스톤 ⚡"
     lore:
-      - "&7몽환적인 빛을 발하는 희귀 보석입니다."
-      - "&7"
-      - "&6등급: &e희귀"
-      - "&7"
-      - "&a다양한 제작에 사용됩니다."
-    quality: 3
+      - "&7신비한 마력이 깃든 보석입니다."
+      - "&7각종 장비 강화 및 특수 제작에 사용됩니다."
+    pdc_data:
+      type: "gem"
+      id: "dreamstone"
+      quality: 5
     glowing: true
-    
-  # ========== 드림스톤 변종 ==========
-  dreamstone_fire:
-    material: FIREWORK_STAR
-    name: "&c🔥 화염의 드림스톤"
-    lore:
-      - "&7불꽃의 정수가 담긴 드림스톤입니다."
-      - "&7"
-      - "&c화염 속성 무기 제작에 사용"
-    quality: 4
-    glowing: true
-    
-  dreamstone_water:
-    material: PRISMARINE_SHARD
-    name: "&9💧 물의 드림스톤"
-    lore:
-      - "&7깊은 바다의 정수가 담긴 드림스톤입니다."
-      - "&7"
-      - "&9수중 장비 제작에 사용"
-    quality: 4
-    glowing: true
-    
-  dreamstone_earth:
-    material: RAW_COPPER
-    name: "&6🏔️ 대지의 드림스톤"
-    lore:
-      - "&7대지의 정수가 담긴 드림스톤입니다."
-      - "&7"
-      - "&6방어구 강화에 사용"
-    quality: 4
-    glowing: true
+    custom_model_data: 2002
 
-  # ========== 합금 ==========
-  steel_ingot:
-    material: IRON_INGOT
-    name: "&7⚔ 강철 주괴"
+  # 3성 석탄 (예시)
+  coal_3star:
+    material: COAL
+    name: "&6[3성] 고효율 석탄"
     lore:
-      - "&7철과 석탄을 합금하여 만든 주괴입니다."
-      - "&7"
-      - "&7기본 도구 제작에 사용됩니다."
-    quality: 2
-    custom_model_data: 1
-    
-  mithril_ingot:
-    material: IRON_INGOT
-    name: "&b✦ 미스릴 주괴"
-    lore:
-      - "&7가벼우면서도 단단한 마법 금속입니다."
-      - "&7"
-      - "&b중급 장비 제작에 사용"
-    quality: 3
+      - "&7일반 석탄보다 훨씬 오래 탑니다."
+    pdc_data:
+      type: "mineral"
+      id: "coal_3star"
+      quality: 3
     glowing: true
-    custom_model_data: 2
-    
-  adamantium_ingot:
-    material: NETHERITE_INGOT
-    name: "&5◆ 아다만티움 주괴"
-    lore:
-      - "&7가장 단단한 것으로 알려진 금속입니다."
-      - "&7"
-      - "&5최고급 장비 제작에 사용"
-    quality: 4
-    glowing: true
-    custom_model_data: 3

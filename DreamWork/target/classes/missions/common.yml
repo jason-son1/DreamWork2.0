@@ -1,0 +1,216 @@
+daily:
+  reset_time: "00:00:00"
+  missions:
+    daily_login:
+      type: "STATISTIC_ACCUMULATE"
+      statistic: "LOGIN" # Or custom handling
+      amount: 1
+      display_name: "&a[출석] &f또 만났네요!"
+      description:
+        - "&7서버에 접속하여 출석 도장을 찍으세요."
+        - "&f보상: &e100 D"
+      rewards:
+        - "money give %player% 100"
+        - "dw citizen point add %player% 5"
+
+    daily_chat:
+      type: "CHAT_CHANNEL"
+      channel: "GLOBAL"
+      amount: 10
+      display_name: "&e[소통] &f아침 인사"
+      description:
+        - "&7전체 채팅으로 이웃들과 인사를 나누세요."
+        - "&f목표: &e10회 입력"
+      rewards:
+        - "give %player% experience_bottle 1"
+
+    daily_eat:
+      type: "EAT"
+      amount: 5
+      display_name: "&c[건강] &f든든한 한 끼"
+      description:
+        - "&7잘 먹어야 일도 잘 하는 법입니다."
+        - "&7조리된 음식을 섭취하세요."
+      conditions:
+        - "NOT_MATERIAL: ROTTEN_FLESH"
+        - "NOT_MATERIAL: SPIDER_EYE"
+        - "NOT_MATERIAL: CHICKEN" # Raw chicken
+      rewards:
+        - "effect give %player% speed 600 0"
+
+    daily_move:
+      type: "WALK"
+      amount: 1000 # 1000m (logic might divide by 100 for cm, but plan says 1000m)
+      display_name: "&b[운동] &f동네 한 바퀴"
+      description:
+        - "&7건강을 위해 1km 정도 가볍게 뛰어봅시다."
+      rewards:
+        - "money give %player% 50"
+        - "dw citizen point add %player% 5"
+
+    daily_sleep:
+      type: "SLEEP"
+      amount: 1
+      display_name: "&9[휴식] &f꿀잠"
+      description:
+        - "&7침대에서 편안한 밤을 보내세요."
+      rewards:
+        - "effect give %player% fast_digging 600 0"
+
+weekly:
+  reset_day: "MONDAY"
+  missions:
+    weekly_survive:
+      type: "SURVIVE"
+      amount: 1 # Condition check
+      display_name: "&c[생존] &f강철의 생명력"
+      description:
+        - "&7일주일간 3회 미만으로 사망하세요."
+      conditions:
+        - "DEATH_COUNT_BELOW: 3"
+      rewards:
+        - "give %player% dream_stone_shard 1"
+        - "dw citizen point add %player% 50"
+
+    weekly_jobs:
+      type: "JOB_ACTIVITY"
+      amount: 3 # 3 different jobs
+      display_name: "&6[체험] &f만능 일꾼"
+      description:
+        - "&7다양한 직업의 활동을 체험해보세요."
+        - "&7(광질, 농사, 낚시, 사냥, 탐험 중 3종류)"
+      rewards:
+        - "money give %player% 1000"
+
+    weekly_town:
+      type: "ITEM_TRASH" # Custom type needed? Or just ITEM_DONATION to trash bin
+      amount: 20
+      display_name: "&7[봉사] &f마을 청소부"
+      description:
+        - "&7쓰레기통에 잡동사니를 20회 버리세요."
+      rewards:
+        - "dw town contribution add %player% 1" # Placeholder cmd
+
+economy:
+  reset_day: "MONDAY"
+  missions:
+    eco_shopper:
+      type: "SHOP_PURCHASE"
+      amount: 5000
+      display_name: "&e[소비] &f시장의 큰손"
+      description:
+        - "&7다른 유저의 상점에서 물건을 구매하세요."
+        - "&f목표: &e5000 D 이상 소비"
+      conditions:
+        - "NOT_SELF_TRANSACTION"
+      rewards:
+        - "dw citizen point add %player% 30"
+        - "give %player% raw_gold 5"
+
+    eco_gourmet:
+      type: "SHOP_PURCHASE"
+      amount: 10
+      display_name: "&a[상생] &f로컬 푸드"
+      description:
+        - "&7농부가 판매하는 음식을 구매하세요."
+      conditions:
+        - "MATERIAL_TYPE: EDIBLE"
+        - "NOT_SELF_TRANSACTION"
+      rewards:
+         - "effect give %player% health_boost 3600 0"
+
+    eco_tax:
+      type: "TOWNY_TAX"
+      amount: 1
+      display_name: "&b[의무] &f모범 납세자"
+      description:
+        - "&7타운 세금을 연체 없이 납부하세요."
+      rewards:
+        - "give %player% town_scroll 1"
+
+    eco_invest:
+      type: "DEPOSIT"
+      amount: 1000
+      display_name: "&6[투자] &f타운의 후원자"
+      description:
+        - "&7타운 은행에 기부하세요."
+      rewards:
+        - "dw citizen point add %player% 50"
+
+    eco_trade:
+      type: "TRADE"
+      amount: 1
+      display_name: "&d[거래] &f쿨한 거래"
+      description:
+        - "&7다른 유저와 1:1 교환을 1회 진행하세요."
+      rewards:
+        - "give %player% trade_fee_ticket 1"
+
+social:
+  reset_day: "MONDAY"
+  missions:
+    social_visit:
+      type: "VISIT_TOWN_HOME"
+      amount: 3
+      display_name: "&b[여행] &f이웃 마을 탐방"
+      description:
+        - "&7다른 타운의 홈블록을 3곳 방문하세요."
+      conditions:
+        - "IGNORE_OWN_TOWN"
+      rewards:
+        - "effect give %player% speed 1200 1"
+
+    social_build:
+      type: "PLACE_BLOCK_IN_TOWN"
+      amount: 100
+      display_name: "&6[건축] &f나의 보금자리"
+      description:
+        - "&7타운 내 자신의 땅에 블록을 100개 설치하세요."
+      conditions:
+        - "IS_PLOT_OWNER"
+      rewards:
+        - "give %player% golden_shovel 1"
+
+    social_chat:
+      type: "CHAT_CHANNEL"
+      channel: "TOWN"
+      amount: 30
+      display_name: "&e[소통] &f마을 회의"
+      description:
+        - "&7타운 채팅으로 대화를 나누세요."
+      rewards:
+        - "dw citizen point add %player% 10"
+
+special: # One-time / Milestones
+  missions:
+    legend_time:
+      type: "STATISTIC_ACCUMULATE"
+      statistic: "PLAY_ONE_MINUTE" # Ticks
+      amount: 36000000 # 500 hours * 60 * 60 * 20
+      display_name: "&6[끈기] &f드림워크의 화석"
+      description:
+        - "&7누적 접속 시간 500시간을 달성하세요."
+      rewards:
+        - "lp user %player% parent add veteran" # 칭호 Group
+        - "dw effect aura unlock %player%"
+
+    legend_vote:
+      type: "STATISTIC_ACCUMULATE"
+      statistic: "VOTE" # Custom stat if needed
+      amount: 100
+      display_name: "&b[충성] &f개국 공신"
+      description:
+        - "&7서버를 100회 추천해주세요."
+      rewards:
+        - "lp user %player% parent add supporter"
+        - "dw storage expand %player% 1"
+
+    legend_rich:
+      type: "STATISTIC_ACCUMULATE"
+      statistic: "MONEY_SPENT"
+      amount: 1000000
+      display_name: "&e[재력] &f노블레스"
+      description:
+        - "&7누적 100만 D를 사용하세요."
+      rewards:
+        - "dw nick color unlock %player% gradient_gold"

@@ -1,0 +1,243 @@
+chains:
+  # 1. 석탄 (연료 공급)
+  fuel_supply:
+    icon: COAL
+    tier_1:
+      display_name: "&f[광부] &e대장장이의 친구"
+      description:
+        - "&7대장간의 화로가 꺼져가고 있습니다."
+        - "&7석탄을 구해 불씨를 살려주세요."
+        - "&f목표: &7석탄 광석 &e64개"
+      type: BREAK
+      target: COAL_ORE
+      amount: 64
+      rewards:
+        - "money give %player% 200"
+        - "give %player% torch 64"
+      next_mission: fuel_supply_tier_2
+    tier_2:
+      display_name: "&f[광부] &6검은 보석"
+      description:
+        - "&7더 많은 열기가 필요합니다."
+        - "&7깊은 곳의 석탄은 더 오래 탄다고 합니다."
+        - "&f목표: &7석탄 광석 &e500개"
+      type: BREAK
+      target: COAL_ORE
+      amount: 500
+      rewards:
+        - "money give %player% 1000"
+        - "dw item give %player% miner_lunchbox 1"
+      next_mission: fuel_supply_tier_3
+    tier_3:
+      display_name: "&f[광부] &c영원한 불씨"
+      description:
+        - "&7대장간이 쉴 새 없이 돌아갑니다."
+        - "&f목표: &7석탄 광석 &e2000개"
+      type: BREAK
+      target: COAL_ORE
+      amount: 2000
+      rewards:
+        - "money give %player% 5000"
+        - "lp user %player% parent add title_flamekeeper"
+        - "give %player% coal_block 30"
+
+  # 2. 철/구리 (강철의 의지)
+  iron_will:
+    icon: IRON_INGOT
+    tier_1:
+      display_name: "&f[광부] &7견습공의 첫걸음"
+      description:
+        - "&7기초적인 금속을 다뤄봅시다."
+        - "&f목표: &7철 원석 &e50개"
+      type: BREAK
+      target: IRON_ORE
+      amount: 50
+      rewards:
+        - "money give %player% 500"
+        - "give %player% iron_ingot 20"
+      next_mission: iron_will_tier_2
+    tier_2:
+      display_name: "&f[광부] &6녹슬지 않는 노력"
+      description:
+        - "&7구리는 산화되기 쉽지만 좋은 재료입니다."
+        - "&f목표: &7구리 원석 &e300개"
+      type: BREAK
+      target: COPPER_ORE
+      amount: 300
+      rewards:
+        - "money give %player% 2000"
+        - "dw item give %player% whetstone 1"
+      next_mission: iron_will_tier_3
+    tier_3:
+      display_name: "&f[광부] &c대지의 핏줄"
+      description:
+        - "&7이제 합금을 다룰 자격이 있습니다."
+        - "&f목표: &7철 원석 &e1500개"
+      type: BREAK
+      target: IRON_ORE
+      amount: 1500
+      rewards:
+        - "money give %player% 10000"
+        - "dw recipe unlock %player% reinforced_alloy"
+
+  # 3. 돌/심층암 (깊은 곳의 뼈대)
+  deep_foundation:
+    icon: DEEPSLATE
+    tier_1:
+      display_name: "&f[광부] &7길을 여는 자"
+      description:
+        - "&7광산으로 가는 길을 닦으세요."
+        - "&f목표: &7돌 &e200개"
+      type: BREAK
+      target: STONE
+      amount: 200
+      rewards:
+        - "money give %player% 100"
+        - "give %player% iron_pickaxe 1"
+      next_mission: deep_foundation_tier_2
+    tier_2:
+      display_name: "&f[광부] &8단단한 기반"
+      description:
+        - "&7더 깊은 곳으로 내려가세요."
+        - "&f목표: &7심층암 &e500개"
+      type: BREAK
+      target: DEEPSLATE
+      amount: 500
+      rewards:
+        - "money give %player% 1500"
+        - "effect give %player% night_vision 600 1"
+      next_mission: deep_foundation_tier_3
+    tier_3:
+      display_name: "&f[광부] &5지하 도시의 꿈"
+      description:
+        - "&7거대한 지하 도시를 건설할 자재입니다."
+        - "&f목표: &7심층암 &e5000개"
+      type: BREAK
+      target: DEEPSLATE
+      amount: 5000
+      rewards:
+        - "money give %player% 15000"
+        - "dw item give %player% pioneer_pickaxe 1"
+
+  # 4. 레드스톤/청금석 (신비한 가루)
+  mysterious_dust:
+    icon: REDSTONE
+    tier_1:
+      display_name: "&f[광부] &9푸른 빛의 인도"
+      description:
+        - "&7마법부여에 필요한 청금석을 찾으세요."
+        - "&f목표: &7청금석 광석 파괴 &e30회"
+      type: BREAK
+      target: LAPIS_ORE
+      amount: 30
+      rewards:
+        - "money give %player% 300"
+        - "give %player% experience_bottle 10"
+      next_mission: mysterious_dust_tier_2
+    tier_2:
+      display_name: "&f[광부] &c대지의 맥박"
+      description:
+        - "&7붉게 빛나는 돌을 조심하세요."
+        - "&f목표: &7레드스톤 광석 파괴 &e200회"
+      type: BREAK
+      target: REDSTONE_ORE
+      amount: 200
+      rewards:
+        - "money give %player% 2000"
+        - "give %player% glowstone_dust 64"
+      next_mission: mysterious_dust_tier_3
+    tier_3:
+      display_name: "&f[광부] &5마력의 원천"
+      description:
+        - "&7마법의 힘을 완전히 장악하세요."
+        - "&f목표: &7광석 파괴 &e1000회"
+      type: BREAK
+      target: 
+        - REDSTONE_ORE
+        - LAPIS_ORE
+      amount: 1000
+      rewards:
+        - "money give %player% 8000"
+        - "dw item give %player% lucky_charm 1"
+
+  # [기술] 광맥 탐지 스피드런
+  radar_timeattack:
+    icon: COMPASS
+    tier_1:
+      display_name: "&b[기술] &f소리를 듣는 자"
+      type: CONDITIONAL_BREAK
+      target: IRON_ORE
+      amount: 1
+      conditions:
+        - "SKILL_ACTIVE: ORE_RADAR"
+        - "TIME_WITHIN: 60s"
+      rewards:
+        - "money give %player% 300"
+        - "give %player% experience 200"
+      next_mission: radar_timeattack_tier_2
+    tier_2:
+      display_name: "&b[기술] &f명확한 신호"
+      type: CONDITIONAL_BREAK
+      target: DIAMOND_ORE
+      amount: 1
+      conditions:
+        - "SKILL_ACTIVE: ORE_RADAR"
+        - "TIME_WITHIN: 30s"
+      rewards:
+        - "money give %player% 2000"
+        - "dw item give %player% radar_battery 1"
+
+  # [하드코어] 사선의 경계 (빈사 상태)
+  near_death:
+    icon: SKELETON_SKULL
+    tier_1:
+      display_name: "&c[위험] &f피 묻은 곡괭이"
+      description:
+        - "&7죽음의 문턱에서 다이아몬드를 채굴하세요."
+        - "&f조건: &c체력 3칸 이하"
+      type: CONDITIONAL_BREAK
+      target: DIAMOND_ORE
+      amount: 1
+      conditions:
+        - "HP_BELOW: 6"
+      rewards:
+        - "money give %player% 2000"
+        - "give %player% golden_apple 1"
+      next_mission: near_death_tier_2
+    tier_2:
+      display_name: "&c[위험] &f벼랑 끝에서"
+      description:
+        - "&7한 대만 맞아도 끝입니다."
+        - "&f조건: &c체력 1칸 이하"
+      type: CONDITIONAL_BREAK
+      target: ANCIENT_DEBRIS
+      amount: 1
+      conditions:
+        - "HP_BELOW: 2"
+      rewards:
+        - "money give %player% 10000"
+        - "give %player% totem_of_undying 1"
+
+  # [경제] 대장간 의뢰
+  forge_patron:
+    icon: ANVIL
+    tier_1:
+      display_name: "&e[경제] &f단골 손님"
+      description:
+        - "&7대장간에서 수리비나 감정비로 돈을 쓰세요."
+        - "&f목표: &e1000 D 사용"
+      type: STATISTIC_ACCUMULATE # Custom handling in ForgeManager? Or simple event hook
+      statistic: "MONEY_SPENT_FORGE" # Custom stat name
+      amount: 1000
+      rewards:
+        - "dw coupon give %player% repair_50 1"
+      next_mission: forge_patron_tier_2
+    tier_2:
+      display_name: "&e[경제] &f큰손"
+      description:
+        - "&7당신은 대장간의 VIP입니다."
+        - "&f목표: &e10000 D 사용"
+      statistic: "MONEY_SPENT_FORGE"
+      amount: 10000
+      rewards:
+        - "dw furniture give %player% anvil_model 1"

@@ -92,6 +92,12 @@ public class JobManager {
         // 배율 적용
         double finalExp = baseExp * globalExpMultiplier;
 
+        // Towny 보너스 (자신의 타운 내에서 활동 시 10% 추가)
+        if (plugin.getTownyHook() != null && plugin.getTownyHook().isEnabled() &&
+                plugin.getTownyHook().isInOwnTown(player, player.getLocation())) {
+            finalExp *= 1.1;
+        }
+
         // 경험치 추가
         double currentExp = userData.getJobExp(jobType) + finalExp;
         userData.setJobExp(jobType, currentExp);

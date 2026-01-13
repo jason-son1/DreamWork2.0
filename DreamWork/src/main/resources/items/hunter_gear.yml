@@ -1,0 +1,42 @@
+# 사냥꾼 (Hunter) 장비/아이템 설정
+
+items:
+  # 곰 덫 (Bear Trap)
+  bear_trap:
+    material: IRON_TRAPDOOR
+    name: "&c☠ 곰 덫"
+    lore:
+      - "&7바닥에 설치하여 밟는 적에게 큰 피해를 줍니다."
+      - "&c피해량: 10.0"
+      - "&7(우클릭하여 설치)"
+    pdc_data:
+      type: "trap"
+      id: "bear_trap"
+      damage: 10.0
+    custom_model_data: 4001
+
+  # 몬스터 미끼 (Monster Lure)
+  monster_lure:
+    material: ROTTEN_FLESH
+    name: "&5☢ 몬스터 미끼"
+    lore:
+      - "&7주변의 몬스터를 유인합니다."
+      - "&7(우클릭하여 사용)"
+    pdc_data:
+      type: "lure"
+      id: "monster_lure"
+    glowing: true
+    custom_model_data: 4002
+
+  # 정교한 활 (예시)
+  precision_bow:
+    material: BOW
+    name: "&6🏹 정교한 활"
+    lore:
+      - "&7사냥꾼의 정밀한 사격이 가능한 활입니다."
+      - "&e치명타 확률 +5%"
+    pdc_data:
+      type: "weapon"
+      id: "precision_bow"
+      bonus_crit: 0.05
+    custom_model_data: 4003

@@ -110,23 +110,29 @@ public class LuckPermsHook {
      * 레벨에 따른 칭호 결정
      */
     private String getTitleForLevel(JobType jobType, int level) {
-        String jobIcon = jobType.getIcon();
         String jobName = jobType.getDisplayName();
+        String format = null;
 
-        // 레벨 구간별 칭호
-        if (level >= 100) {
-            return "§6[§e전설의 " + jobName + "§6]";
-        } else if (level >= 75) {
-            return "§5[§d대가 " + jobName + "§5]";
-        } else if (level >= 50) {
-            return "§9[§b숙련 " + jobName + "§9]";
-        } else if (level >= 25) {
-            return "§2[§a노련한 " + jobName + "§2]";
-        } else if (level >= 10) {
-            return "§8[§7견습 " + jobName + "§8]";
-        } else {
-            return "§7[" + jobName + " Lv." + level + "]";
+        // Config에서 칭호 포맷 가져오기
+        org.bukkit.configuration.file.FileConfiguration config = plugin.getConfigManager().getConfig();
+
+        if (level >= 100)
+            format = config.getString("job-titles.100");
+        else if (level >= 75)
+            format = config.getString("job-titles.75");
+        else if (level >= 50)
+            format = config.getString("job-titles.50");
+        else if (level >= 25)
+            format = config.getString("job-titles.25");
+        else if (level >= 10)
+            format = config.getString("job-titles.10");
+
+        if (format != null) {
+            return plugin.getConfigManager().translateColors(format.replace("{job}", jobName));
         }
+
+        // 기본값 (10레벨 미만)
+        return "§7[" + jobName + " Lv." + level + "]";
     }
 
     /**

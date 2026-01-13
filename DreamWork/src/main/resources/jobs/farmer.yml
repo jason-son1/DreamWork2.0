@@ -1,66 +1,104 @@
-# ============================================
-#        농부 직업 설정 파일
-# ============================================
+# 농부 (Farmer) 설정 파일
+# Plan/직업/농부 변경.md 및 세부 테이블.md 기반
 
-# 작물별 보상
-crops:
+level-up-curve: "level * 100 + 50"
+
+# 1. 경험치 및 보상 테이블
+# 대상: [경험치, 돈]
+# * 중요: 완전히 자란 작물(Fully Grown)만 보상 지급
+rewards:
+  # Tier 1 (기초 작물)
   wheat:
-    exp: 2.0
-    money: 0.8
-  carrot:
-    exp: 2.0
-    money: 0.8
+    exp: 1.0
+    money: 0.5
   potato:
-    exp: 2.0
+    exp: 1.0
+    money: 0.5
+  carrot:
+    exp: 1.0
+    money: 0.5
+  beetroots:
+    exp: 1.0
+    money: 0.5
+    
+  # Tier 1.5 (빠른 성장)
+  sugar_cane:
+    exp: 1.0
+    money: 0.5
+  cactus:
+    exp: 1.0
+    money: 0.5
+    
+  # Tier 2 (자동화 고려)
+  pumpkin:
+    exp: 1.5
     money: 0.8
-  beetroot:
-    exp: 2.5
-    money: 1.0
+  melon:
+    exp: 1.5
+    money: 0.8
+    
+  # Tier 3 (고수익)
   nether_wart:
-    exp: 4.0
+    exp: 3.0
     money: 2.0
   cocoa:
     exp: 3.0
-    money: 1.5
-  melon:
-    exp: 3.0
-    money: 1.2
-  pumpkin:
-    exp: 3.0
-    money: 1.2
-  sweet_berry:
-    exp: 1.5
-    money: 0.5
+    money: 2.0
 
-# 등급별 작물 드롭 확률 (기본값)
-quality_chances:
-  star3: 0.05  # 3성 확률 5%
-  star2: 0.20  # 2성 확률 20%
-  # 나머지 75%는 1성 (기본 작물)
+  # Special
+  golden_crop:
+    exp: 50.0
+    money: 100.0
 
-# 스킬 설정
+# 2. 스킬 설정
 skills:
+  # 패시브: 녹색 손길 (Green Thumb) - 자동 재파종
   green_thumb:
     name: "녹색 손길"
-    unlock-level: 10
-    description: "수확 시 자동으로 재파종할 확률이 있습니다."
-    chance: 0.3  # 30% 확률
-    
-  growth_aura:
-    name: "성장의 기운"
-    unlock-level: 25
-    description: "주변 작물의 성장 속도가 증가합니다."
-    radius: 5
-    growth_multiplier: 1.5
-    
-  bountiful_harvest:
-    name: "풍작"
-    unlock-level: 50
-    description: "수확량이 증가하고 고등급 확률이 높아집니다."
-    quality_bonus: 0.1  # 등급 확률 +10%
-    yield_bonus: 0.5    # 수확량 +50%
+    levels:
+      10:
+        chance: 50.0 # 50%
+      30:
+        chance: 100.0 # 100%
 
-# Towny 연동 (타운 내 농경지에서만 작동)
-towny:
-  require_farm_plot: false  # true로 설정하면 농경지에서만 보상
-  town_bonus: 1.2           # 타운 내 경험치 보너스
+  # 패시브: 대지의 기운 (Growth Aura) - 주변 작물 성장 가속
+  growth_aura:
+    name: "대지의 기운"
+    interval: 200 # 10초마다 체크 (Ticks)
+    levels:
+      20:
+        radius: 3
+        chance: 0.05 # 5% 확률로 성장
+      50:
+        radius: 5
+        chance: 0.10 # 10%
+      100: # Max
+        radius: 7
+        chance: 0.20 # 20%
+
+# 3. 아이템 및 확률 설정
+items:
+  # 황금 씨앗 (완전히 자란 작물 수확 시 드롭)
+  golden_seed:
+    base_chance: 0.001 # 0.1%
+    bonus_per_level: 0.0005 # 레벨당 0.05%
+    drop_from: 
+      - WHEAT
+      - CARROT # POTATO, BEETROOTS handled in code
+      
+  # 작물 등급 (Quality Crops)
+  quality_crops:
+    tier_2_chance: 0.15 # 2성 (15%)
+    tier_3_chance: 0.05 # 3성 (5%)
+    tier_1_prefix: "§f"
+    tier_2_prefix: "§a싱싱한 "
+    tier_3_prefix: "§6 황금/유기농 "
+
+  # 비료
+  fertilizers:
+    quick_gro:
+      duration: 600 # 10분
+      speed_multiplier: 2
+    quality_compost:
+      tier_2_bonus: 0.2 # +20%
+      tier_3_bonus: 0.1 # +10%

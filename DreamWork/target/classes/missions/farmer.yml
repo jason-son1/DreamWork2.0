@@ -1,0 +1,182 @@
+chains:
+  # 1. 곡물 마스터리 (Grain Mastery)
+  grain_mastery:
+    icon: WHEAT
+    tier_1:
+      display_name: "&a[농부] &f첫 번째 수확"
+      description:
+        - "&7농사의 기본은 수확입니다."
+        - "&f목표: &7밀 &e64개"
+      type: BREAK
+      target: WHEAT
+      amount: 64
+      rewards:
+        - "money give %player% 50"
+        - "give %player% bread 10"
+      next_mission: grain_mastery_tier_2
+    tier_2:
+      display_name: "&a[농부] &f순환의 고리"
+      description:
+        - "&7수확한 자리에 즉시 씨앗을 심으세요."
+        - "&f조건: &a3초 이내 재파종"
+      type: CONDITIONAL_BREAK
+      target: WHEAT
+      amount: 100
+      conditions:
+        - "REPLANT: 3s" # Listener logic required
+      rewards:
+        - "money give %player% 200"
+        - "give %player% bone_meal 10"
+      next_mission: grain_mastery_tier_3
+    tier_3:
+      display_name: "&a[농부] &e황금 들판"
+      description:
+        - "&7행운이 깃든 도구로 수확하세요."
+        - "&f조건: &7행운 인챈트 도구 사용"
+      type: CONDITIONAL_BREAK
+      target: WHEAT
+      amount: 300
+      conditions:
+        - "ENCHANT: FORTUNE"
+      rewards:
+        - "money give %player% 500"
+        - "give %player% wheat 64"
+
+  # 2. 구황작물 (Root Expert)
+  root_expert:
+    icon: POTATO
+    tier_1:
+      display_name: "&a[농부] &f땅속의 보물"
+      description:
+        - "&7감자와 당근을 수확하세요."
+        - "&f목표: &7감자/당근 &e100개"
+      type: BREAK
+      target: 
+        - POTATOES
+        - CARROTS
+      amount: 100
+      rewards:
+        - "money give %player% 100"
+        - "give %player% baked_potato 16"
+      next_mission: root_expert_tier_2
+    tier_2:
+      display_name: "&a[농부] &c독성 주의보"
+      description:
+        - "&7독 묻은 감자를 10개 수집하여 버리세요."
+        - "&f목표: &7독 묻은 감자 폐기 &e10회"
+      type: ITEM_TRASH # Custom Handling
+      target: POISONOUS_POTATO
+      amount: 10
+      rewards:
+        - "money give %player% 300"
+        - "give %player% milk_bucket 1"
+      next_mission: root_expert_tier_3
+    tier_3:
+      display_name: "&a[농부] &6대량 생산"
+      description:
+         - "&7빠른 손놀림으로 작물을 수확하세요."
+      type: BREAK
+      target: CARROTS
+      amount: 500
+      rewards:
+        - "money give %player% 700"
+        - "dw item give %player% farmer_sickle 1"
+
+  # 3. 과실 농장 (Fruit Planter)
+  fruit_planter:
+    icon: MELON_SLICE
+    tier_1:
+      display_name: "&a[농부] &f덩굴 관리자"
+      description:
+        - "&7줄기를 다치지 않게 조심하세요."
+        - "&f목표: &7호박/수박 &e50개"
+      type: BREAK
+      target: 
+        - PUMPKIN
+        - MELON
+      amount: 50
+      rewards:
+        - "money give %player% 150"
+      next_mission: fruit_planter_tier_2
+    tier_2:
+      display_name: "&a[농부] &b정교한 손길"
+      description:
+        - "&7섬세한 손길로 수박을 온전히 수확하세요."
+        - "&f조건: &7섬세한 손길 사용"
+      type: CONDITIONAL_BREAK
+      target: MELON
+      amount: 30
+      conditions:
+        - "ENCHANT: SILK_TOUCH"
+      rewards:
+        - "money give %player% 400"
+        - "give %player% melon_seeds 64"
+      next_mission: fruit_planter_tier_3
+    tier_3:
+      display_name: "&a[농부] &6잭오랜턴"
+      description:
+        - "&7호박을 가공하여 잭오랜턴을 만드세요."
+      type: CRAFT
+      target: JACK_O_LANTERN
+      amount: 50
+      rewards:
+        - "money give %player% 800"
+        - "dw item give %player% scarecrow 1"
+
+  # 4. 특수 재배 (Exotic)
+  exotic_farmer:
+    icon: CACTUS
+    tier_1:
+      display_name: "&a[농부] &f수변 공원"
+      description:
+        - "&7물가에서 사탕수수를 수확하세요."
+      type: BREAK
+      target: SUGAR_CANE
+      amount: 200
+      rewards:
+        - "money give %player% 200"
+      next_mission: exotic_farmer_tier_2
+    tier_2:
+      display_name: "&a[농부] &2정글의 법칙"
+      description:
+        - "&7코코아 콩을 완전히 자란 상태에서 수확하세요."
+      type: CONDITIONAL_BREAK
+      target: COCOA
+      amount: 100
+      conditions:
+        - "AGE: MAX"
+      rewards:
+        - "money give %player% 600"
+        - "give %player% cookie 64"
+
+  # 5. 기상학자 (Meteorologist)
+  meteorologist:
+    icon: CLOCK
+    tier_1:
+      display_name: "&b[기술] &f야행성 식물"
+      description:
+        - "&7밤에 작물을 수확하세요."
+        - "&f조건: &9밤(Night)"
+      type: CONDITIONAL_BREAK
+      target: WHEAT
+      amount: 200
+      conditions:
+        - "TIME: NIGHT"
+      rewards:
+        - "money give %player% 200"
+      next_mission: meteorologist_tier_2
+    tier_2:
+      display_name: "&b[기술] &9기우제"
+      description:
+        - "&7비가 오는 날 야외에서 감자를 수확하세요."
+        - "&f조건: &9비(Rain), 야외"
+      type: CONDITIONAL_BREAK
+      target: POTATOES
+      amount: 30
+      conditions:
+        - "WEATHER: STORM"
+        - "LOCATION: OUTDOOR"
+        - "QUALITY: 3" # Implementation dependent
+      rewards:
+        - "money give %player% 500"
+        - "dw item give %player% rain_totem 1"

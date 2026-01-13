@@ -1,0 +1,29 @@
+# 탐험가 (Adventurer) 장비 설정
+
+items:
+  # 귀환 스크롤 (Recall Scroll)
+  recall_scroll:
+    material: PAPER
+    name: "&b📜 귀환 스크롤"
+    lore:
+      - "&7마을로 순간이동할 수 있는 주문서입니다."
+      - "&e(우클릭하여 사용)"
+      - "&7대기 시간: 5초"
+    pdc_data:
+      type: "scroll"
+      id: "recall_scroll"
+    glowing: true
+    custom_model_data: 6001
+
+  # 고대 나침반 (Ancient Compass)
+  ancient_compass:
+    material: COMPASS
+    name: "&6🧭 고대 나침반"
+    lore:
+      - "&7숨겨진 구조물을 탐지할 수 있습니다."
+      - "&e(우클릭하여 육감 스킬 사용)"
+    pdc_data:
+      type: "tool"
+      id: "ancient_compass"
+    glowing: true
+    custom_model_data: 6002

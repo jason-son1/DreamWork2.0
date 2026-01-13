@@ -1,0 +1,24 @@
+title: "&1어시장"
+size: 54
+fill_item: BLUE_STAINED_GLASS_PANE
+shop_type: SELL
+
+items:
+  4:
+    name: "&b&l어시장 판매"
+    material: TROPICAL_FISH
+    lore:
+      - "&7잡은 물고기를 판매하세요!"
+      - "&e신선도에 따라 가격이 달라질 수 있습니다."
+  53:
+    name: "&c나가기"
+    material: ACACIA_DOOR
+    action:
+      - "SOUND:UI_BUTTON_CLICK"
+      - "OPEN:main_dashboard"
+
+prices:
+  COD: 10.0
+  SALMON: 15.0
+  TROPICAL_FISH: 50.0
+  PUFFERFISH: 30.0

@@ -4,19 +4,16 @@ import com.dreamwork.DreamWorkPlugin;
 import com.dreamwork.job.JobType;
 import com.dreamwork.mission.MissionType;
 import com.dreamwork.skill.impl.MinersTrance;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Random;
 
@@ -24,167 +21,181 @@ import java.util.Random;
  * 광부 직업 리스너
  * 
  * BlockBreakEvent를 감지하여 광물 채굴 시 경험치와 돈을 지급합니다.
+ * Plan에 명시된 Tier 시스템 및 특수 보상 공식을 따릅니다.
  * 
  * @author DreamWork Team
  */
 public class MinerListener implements Listener {
 
     private final DreamWorkPlugin plugin;
-    private final NamespacedKey placedByPlayerKey;
     private final Random random = new Random();
-    private MinersTrance minersTrance;
+    private MinersTrance minersTrance; // Injected or retrieved
 
     public MinerListener(DreamWorkPlugin plugin) {
         this.plugin = plugin;
-        this.placedByPlayerKey = new NamespacedKey(plugin, "placed_by_player");
     }
 
     /**
-     * MinersTrance 참조 설정 (DreamWorkPlugin에서 호출)
+     * MinersTrance 참조 설정
      */
     public void setMinersTrance(MinersTrance minersTrance) {
         this.minersTrance = minersTrance;
     }
 
-    /**
-     * 블록 설치 이벤트 - 플레이어가 설치한 블록 표시
-     */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onBlockPlace(BlockPlaceEvent event) {
-        // 설치된 블록 감지 옵션 확인
-        if (!plugin.getConfigManager().getConfig()
-                .getBoolean("jobs.check-player-placed-blocks", true)) {
-            return;
-        }
+    // Helper to get trance if not set (fallback)
 
-        // TODO: 블록의 메타데이터에 표시 (TileState 사용)
-        // 현재는 간단히 건너뜀
-    }
-
-    /**
-     * 블록 파괴 이벤트 - 광물 채굴 처리
-     */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
         Block block = event.getBlock();
         Material material = block.getType();
+        String materialKey = material.name().toLowerCase();
 
         // 직업 설정 가져오기
         FileConfiguration jobConfig = plugin.getConfigManager().getJobConfig("miner");
         if (jobConfig == null)
             return;
 
-        // 블록별 보상 확인
-        ConfigurationSection materialsSection = jobConfig.getConfigurationSection("materials");
-        if (materialsSection == null)
-            return;
+        double exp = 0;
+        double money = 0;
+        boolean broadcast = false;
 
-        String materialKey = material.name().toLowerCase();
-        ConfigurationSection blockConfig = materialsSection.getConfigurationSection(materialKey);
-
-        if (blockConfig == null)
-            return;
-
-        // 경험치 및 돈 가져오기
-        double exp = blockConfig.getDouble("exp", 0);
-        double money = blockConfig.getDouble("money", 0);
+        // 1. 보상 테이블 조회 (Tier System)
+        // YAML 구조: rewards.<material_key>.exp / .money
+        String configPath = "rewards." + materialKey;
+        if (jobConfig.contains(configPath)) {
+            exp = jobConfig.getDouble(configPath + ".exp", 0);
+            money = jobConfig.getDouble(configPath + ".money", 0);
+            broadcast = jobConfig.getBoolean(configPath + ".broadcast", false);
+        } else {
+            // 기본값 (돌 등 Tier 0)
+            // 매크로 방지: 아주 미미한 경험치
+            if (materialKey.contains("stone") || materialKey.contains("deepslate")
+                    || materialKey.contains("netherrack")) {
+                exp = 0.1;
+            }
+        }
 
         if (exp <= 0 && money <= 0)
             return;
 
-        // 쿨다운 체크
+        // 쿨다운 체크 (Anti-Abuse)
         var userData = plugin.getUserDataManager().getUserData(player);
         long cooldown = plugin.getConfigManager().getConfig()
-                .getLong("anti-abuse.action-cooldown", 500);
+                .getLong("anti-abuse.action-cooldown", 500); // 0.5s
 
         if (!userData.checkAndUpdateCooldown("mine_" + materialKey, cooldown)) {
             return; // 쿨다운 중
         }
 
-        // 광부의 몰입 보너스 적용
-        double expBonus = 1.0;
+        // 2. 광부의 몰입 (Trance) 보너스 계산
+        // 공식: P_drop = P_base * (1 + Level * 0.01) * Multiplier_trance
+        double tranceExpMultiplier = 1.0;
+
+        // Retrieve skill instance dynamically if needed
+        // Assuming we registered it in DreamWorkPlugin, we can try to get it,
+        // or effectively rely on the fact that we can instantiate a helper or use a
+        // static map.
+        // But since we are inside Listener, let's use the setter or plugin access.
+        // For this implementation, I will rely on the `handleSpecialDrops` to apply
+        // trance bonus for drops,
+        // and here for Exp.
+
+        // Note: Ideally DreamWorkPlugin should expose getMinersTrance().
+        // I will assume getMinersTrance() returns proper object if set.
+
         if (minersTrance != null) {
-            expBonus += minersTrance.getExpBonus(player);
+            tranceExpMultiplier = minersTrance.getExpMultiplier(player);
         }
 
-        double finalExp = exp * expBonus;
+        double finalExp = exp * tranceExpMultiplier;
 
-        // 보상 지급
+        // 3. 보상 지급
         plugin.getJobManager().giveReward(player, JobType.MINER, finalExp, money);
 
-        // 미션 이벤트 트리거
+        // 4. 미션 이벤트 트리거
         plugin.getMissionManager().processEvent(player, MissionType.BREAK, materialKey, 1);
 
-        // 특수 이벤트: 미지의 광석 드롭 (다이아몬드/에메랄드/금/레드스톤 채굴 시)
-        handleSpecialDrops(player, material);
+        // 5. 서버 알림 (전설 광물)
+        if (broadcast) {
+            String msg = "§e[§6DreamWork§e] §f" + player.getName() + "님이 §b" + material.name() + "§f을(를) 발견했습니다!";
+            Bukkit.broadcastMessage(msg);
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.2f);
+        }
 
-        plugin.debug(player.getName() + " 채굴: " + material.name() +
-                " (Exp: " + exp + ", Money: " + money + ")");
+        // 6. 특수 아이템 드롭 (드림스톤, 미지의 광석)
+        handleSpecialDrops(player, materialKey, jobConfig);
+
+        plugin.debug(player.getName() + " 채굴: " + materialKey + " (Exp: " + finalExp + ", Money: " + money + ")");
     }
 
     /**
-     * 특수 드롭 처리 (미지의 광석, 드림스톤 등)
+     * 특수 아이템 드롭 처리
+     * 공식: P_drop = P_base * (1 + Level * 0.01) * Multiplier_trance
      */
-    private void handleSpecialDrops(Player player, Material material) {
-        FileConfiguration jobConfig = plugin.getConfigManager().getJobConfig("miner");
-        if (jobConfig == null)
+    private void handleSpecialDrops(Player player, String materialKey, FileConfiguration config) {
+        // 드롭 대상이 아니면 스킵 (Tier 2 이상부터 권장, 여기선 Config에 정의된 확률에 따름)
+        // 하지만 기획서상 "광물 발견" 시 드롭이므로, Stone은 제외해야 함.
+        if (materialKey.contains("stone") && !materialKey.contains("ore"))
+            return;
+        if (materialKey.contains("deepslate") && !materialKey.contains("ore"))
             return;
 
-        // 희귀 광물에서만 특수 드롭
-        if (!isRareMineral(material))
-            return;
+        int level = plugin.getUserDataManager().getUserData(player).getJobLevel(JobType.MINER);
+        double tranceMult = (minersTrance != null) ? minersTrance.getRareDropMultiplier(player) : 1.0;
 
-        // 미지의 광석 드롭 확률 (몰입 보너스 적용)
-        double unknownOreChance = jobConfig.getDouble("special_drops.unknown_ore_chance", 0.05);
+        // 1. 드림 스톤
+        double dreamBase = config.getDouble("drops.dream_stone.base_chance", 0.001);
+        double dreamChance = dreamBase * (1 + level * 0.01) * tranceMult;
 
-        if (minersTrance != null) {
-            unknownOreChance += minersTrance.getRareChanceBonus(player);
-        }
-
-        if (random.nextDouble() < unknownOreChance) {
-            ItemStack unknownOre = plugin.getItemManager().createItem("unknown_ore", 1);
-            if (unknownOre != null) {
-                player.getInventory().addItem(unknownOre).values()
-                        .forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
-
-                String message = plugin.getConfigManager().getMessage("miner.unknown-ore-found");
-                player.sendMessage(plugin.getConfigManager().getMessage("prefix") + message);
+        if (random.nextDouble() < dreamChance) {
+            ItemStack item = plugin.getItemManager().createItem("dream_stone", 1);
+            if (item != null) {
+                player.getWorld().dropItemNaturally(player.getLocation(), item);
+                Bukkit.broadcastMessage("§e[§6DreamWork§e] §d" + player.getName() + "님이 전설의 재료, 드림 스톤을 발견했습니다!");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 0.5f);
             }
         }
 
-        // 드림스톤 드롭 확률 (매우 희귀, 몰입 보너스 적용)
-        double dreamstoneChance = jobConfig.getDouble("special_drops.dreamstone_chance", 0.005);
+        // 2. 미지의 광석
+        double unknownBase = config.getDouble("drops.unknown_ore.base_chance", 0.05);
+        double unknownChance = unknownBase * (1 + level * 0.01) * tranceMult;
 
-        if (minersTrance != null) {
-            dreamstoneChance += minersTrance.getRareChanceBonus(player);
-        }
-
-        if (random.nextDouble() < dreamstoneChance) {
-            ItemStack dreamstone = plugin.getItemManager().createItem("dreamstone", 1);
-            if (dreamstone != null) {
-                player.getInventory().addItem(dreamstone).values()
-                        .forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
-
-                String message = plugin.getConfigManager().getMessage("miner.dreamstone-found");
-                player.sendMessage(plugin.getConfigManager().getMessage("prefix") + message);
+        if (random.nextDouble() < unknownChance) {
+            ItemStack item = plugin.getItemManager().createItem("unknown_ore", 1);
+            if (item != null) {
+                player.getWorld().dropItemNaturally(player.getLocation(), item);
+                player.sendMessage("§7[광부] 미지의 광석을 발견했습니다.");
             }
         }
     }
 
     /**
-     * 희귀 광물인지 확인
+     * 플레이어 상호작용 이벤트 - 광맥 탐지 스킬 사용
      */
-    private boolean isRareMineral(Material material) {
-        return switch (material) {
-            case DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE,
-                    EMERALD_ORE, DEEPSLATE_EMERALD_ORE,
-                    GOLD_ORE, DEEPSLATE_GOLD_ORE,
-                    REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE,
-                    LAPIS_ORE, DEEPSLATE_LAPIS_ORE,
-                    ANCIENT_DEBRIS ->
-                true;
-            default -> false;
-        };
+    @EventHandler
+    public void onPlayerInteract(org.bukkit.event.player.PlayerInteractEvent event) {
+        if (event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_AIR &&
+                event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        if (!player.isSneaking()) {
+            return;
+        }
+
+        ItemStack item = event.getItem();
+        if (item == null || !item.getType().name().contains("PICKAXE")) {
+            return;
+        }
+
+        // 광부 직업인지 확인
+        if (plugin.getUserDataManager().getUserData(player).getJobLevel(JobType.MINER) <= 0) {
+            return;
+        }
+
+        // 광맥 탐지 스킬 사용
+        new com.dreamwork.skill.impl.OreRadar(plugin).use(player);
     }
 }

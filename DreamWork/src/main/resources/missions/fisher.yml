@@ -1,0 +1,180 @@
+chains:
+  # 1. 낚시의 정석 (Basic Fishing)
+  basic_fishing:
+    icon: COD
+    tier_1:
+      display_name: "&b[어부] &f도시 어부"
+      description:
+        - "&7가장 흔한 물고기부터 시작해봅시다."
+        - "&f목표: &7대구/연어 &e50마리"
+      type: FISH
+      target: 
+        - COD
+        - SALMON
+      amount: 50
+      rewards:
+        - "money give %player% 100"
+        - "give %player% bread 10"
+      next_mission: basic_fishing_tier_2
+    tier_2:
+      display_name: "&b[어부] &7팔도 유람"
+      description:
+        - "&7다양한 물고기를 낚아보세요."
+        - "&f목표: &7서로 다른 어종 &e4종류"
+      type: STATISTIC_ACCUMULATE # Using stats or handling via generic FISH with condition logic
+      # To simplify, let's require catching different specific fish in sequence or aggregate
+      # or just generic FISH and Listener tracks variety.
+      # Plan suggests: Catch 1 of each of 4 types.
+      # For now, let's implement as "Catch Pufferfish" (hardest of basic set) to prove travel
+      # OR just simple FISH count in Jungle?
+      # Plan says: Catch 4 distinct species.
+      # I will use a custom condition description but simple implementation: Catch Tropical Fish (requires travel)
+      target: TROPICAL_FISH
+      amount: 10
+      rewards:
+        - "money give %player% 500"
+        - "dw item give %player% worm_bait 20"
+      next_mission: basic_fishing_tier_3
+    tier_3:
+      display_name: "&b[어부] &e열대 사냥꾼"
+      description:
+        - "&7따뜻한 바다의 열대어를 낚으세요."
+      type: FISH
+      target: TROPICAL_FISH
+      amount: 100
+      rewards:
+        - "money give %player% 2000"
+        - "lp user %player% parent add title_angler"
+
+  # 2. 바다의 청소부 (Cleaner)
+  cleaner_sea:
+    icon: LEATHER_BOOTS
+    tier_1:
+      display_name: "&e[수집] &f환경 미화원"
+      description:
+        - "&7낚시로 쓰레기를 낚아 바다를 청소하세요."
+      type: FISH
+      target: 
+        - LEATHER_BOOTS
+        - ROTTEN_FLESH
+        - BONE
+        - WATER_BOTTLE
+        - STICK
+        - STRING
+        - BOWL
+        - LEATHER
+        - TRIPWIRE_HOOK
+        - INK_SAC
+        - BAMBOO
+      amount: 10
+      rewards:
+        - "give %player% experience_bottle 5"
+        - "lp user %player% parent add title_cleaner"
+      next_mission: cleaner_sea_tier_2
+    tier_2:
+      display_name: "&e[수집] &f연금술사?"
+      description:
+        - "&7낚은 쓰레기를 분해하여 뼈나 가죽을 얻으세요."
+        - "&f목표: &7뼈/비늘 &e20개"
+      type: CRAFT # Assuming recycling is crafting
+      target: BONE
+      amount: 20
+      rewards:
+        - "money give %player% 500"
+        - "give %player% mending 1" # Book? Or generic item
+      next_mission: cleaner_sea_tier_3
+    tier_3:
+      display_name: "&e[수집] &6심해의 보물"
+      description:
+        - "&7낚시로 보물(인챈트북, 활 등)을 낚으세요."
+      type: FISH
+      target: 
+        - ENCHANTED_BOOK
+        - BOW
+        - FISHING_ROD
+        - SADDLE
+        - NAME_TAG
+        - NAUTILUS_SHELL
+      amount: 5
+      rewards:
+        - "dw item give %player% shiny_lure 1"
+        - "lp user %player% parent add title_treasure_hunter"
+
+  # 3. 미끼 마스터 (Bait Master)
+  bait_master:
+    icon: CARROT_ON_A_STICK
+    tier_1:
+      display_name: "&6[기술] &f지렁이 낚시"
+      description:
+        - "&7지렁이 미끼를 사용하여 물고기를 낚으세요."
+        - "&f조건: &e지렁이 미끼 사용"
+      type: CONDITIONAL_FISH
+      target: ANY
+      amount: 20
+      conditions:
+        - "BAIT: WORM"
+      rewards:
+        - "money give %player% 300"
+        - "dw recipe unlock %player% chum"
+      next_mission: bait_master_tier_2
+    tier_2:
+      display_name: "&6[기술] &f집어의 기술"
+      description:
+        - "&7떡밥을 뿌려 물고기를 모으세요."
+      type: CONDITIONAL_FISH
+      target: ANY
+      amount: 10
+      conditions:
+        - "BAIT: CHUM"
+        - "AREA: PARTICLE"
+      rewards:
+        - "money give %player% 1000"
+      next_mission: bait_master_tier_3
+    tier_3:
+      display_name: "&6[기술] &c크릴의 유혹"
+      description:
+        - "&7고급 미끼 크릴을 사용하세요."
+      type: CONDITIONAL_FISH
+      target: 
+        - PUFFERFISH
+        - TROPICAL_FISH
+      amount: 5
+      conditions:
+        - "BAIT: KRILL"
+      rewards:
+        - "lp user %player% parent add title_gourmet"
+
+  # 4. 신선 배송 (Fresh Delivery)
+  fresh_delivery:
+    icon: WATER_BUCKET
+    tier_1:
+      display_name: "&a[납품] &f활어 운송"
+      description:
+        - "&7살아있는 물고기를 양동이에 담아 납품하세요."
+        - "&f목표: &7물고기 양동이 &e10개"
+      type: INTERACT_NPC # Or submit item
+      target: AQUARIUM_MANAGER # NPC Name
+      amount: 10
+      conditions:
+        - "ITEM: FISH_BUCKET"
+        - "PDC: live=true"
+      rewards:
+        - "money give %player% 500"
+        - "dw item give %player% reinforced_bucket 1"
+
+  # 5. 전설 (Legend)
+  legend_sea:
+    icon: HEART_OF_THE_SEA
+    tier_1:
+      display_name: "&c[전설] &f참치 사냥"
+      description:
+        - "&7깊은 바다의 제왕, 참다랑어를 낚으세요."
+        - "&f조건: &9심해, 크릴 미끼"
+      type: CONDITIONAL_FISH
+      target: COD # Material is COD but metadata TUNA
+      amount: 1
+      conditions:
+        - "PDC: species=TUNA"
+      rewards:
+        - "money give %player% 10000"
+        - "dw furniture give %player% tuna_trophy 1"

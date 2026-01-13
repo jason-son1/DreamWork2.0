@@ -23,8 +23,8 @@ import java.util.UUID;
  * 
  * 단계:
  * - 1단계 (10분): 경험치 +10%
- * - 2단계 (20분): 경험치 +20%, 드롭률 +10%
- * - 3단계 (30분+): 경험치 +30%, 드롭률 +20%, 희귀 아이템 확률 +5%
+ * - 2단계 (20분): 경험치 +20%, 드롭률 +10% (Fortune 0.5)
+ * - 3단계 (30분+): 경험치 +30%, 드롭률 +20%, 희귀 아이템(드림스톤 등) 확률 2배
  * 
  * @author DreamWork Team
  */
@@ -53,11 +53,10 @@ public class MinersTrance implements Listener {
         int unlockLevel = plugin.getConfigManager().getJobConfig("miner")
                 .getInt("skills.miners_trance.unlock-level", 50);
 
-        if (minerLevel < unlockLevel) {
+        if (minerLevel < unlockLevel && unlockLevel > 0) {
             return;
         }
 
-        // 현재 청크
         Chunk currentChunk = player.getLocation().getChunk();
         UUID uuid = player.getUniqueId();
 
@@ -65,11 +64,9 @@ public class MinersTrance implements Listener {
 
         long now = System.currentTimeMillis();
 
-        // 청크가 바뀌었거나 5분 이상 채굴하지 않았으면 리셋
+        // 청크가 바뀌었거나 5분(300s) 이상 채굴하지 않았으면 리셋
         if (!data.isSameChunk(currentChunk) || now - data.lastMineTime > 300_000) {
             data.reset(currentChunk, now);
-            player.sendMessage("§7⚒ 광부의 몰입 시작...");
-            plugin.debug(player.getName() + " 몰입 시작");
         } else {
             // 몰입 지속
             data.lastMineTime = now;
@@ -82,19 +79,26 @@ public class MinersTrance implements Listener {
                 data.previousStage = stage;
                 String stageName = getStageName(stage);
                 double expBonus = getExpBonus(stage);
-                double dropBonus = getDropBonus(stage);
+                double rareBonus = getRareChanceBonus(stage);
 
                 String message = String.format(
-                        "§6⚒ 광부의 몰입 %s 달성! §e(경험치 +%d%%",
+                        "§6⚒ 광부의 몰입 %s 달성! §e(EXP +%d%%",
                         stageName,
                         (int) (expBonus * 100));
 
-                if (dropBonus > 0) {
-                    message += ", 드롭률 +" + (int) (dropBonus * 100) + "%";
+                if (stage >= 2) {
+                    message += ", 드롭률 증가";
+                }
+                if (rareBonus > 1.0) {
+                    message += ", 희귀 확률 2배";
                 }
 
                 message += ")";
                 player.sendMessage(message);
+                player.spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, player.getLocation().add(0, 1, 0), 10, 0.5,
+                        0.5, 0.5);
+                player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f,
+                        1.0f + (stage * 0.2f));
 
                 plugin.debug(player.getName() + " 몰입 " + stageName + " 달성");
             }
@@ -109,72 +113,35 @@ public class MinersTrance implements Listener {
         tranceDataMap.remove(event.getPlayer().getUniqueId());
     }
 
-    /**
-     * 현재 몰입 단계의 경험치 보너스 가져오기
-     */
-    public double getExpBonus(Player player) {
+    public double getExpMultiplier(Player player) {
         TranceData data = tranceDataMap.get(player.getUniqueId());
         if (data == null)
-            return 0.0;
+            return 1.0;
 
-        return getExpBonus(data.getCurrentStage());
+        return 1.0 + getExpBonus(data.getCurrentStage());
     }
 
-    /**
-     * 현재 몰입 단계의 드롭 보너스 가져오기
-     */
-    public double getDropBonus(Player player) {
+    public double getRareDropMultiplier(Player player) {
         TranceData data = tranceDataMap.get(player.getUniqueId());
         if (data == null)
-            return 0.0;
-
-        return getDropBonus(data.getCurrentStage());
-    }
-
-    /**
-     * 현재 몰입 단계의 희귀 아이템 확률 보너스 가져오기
-     */
-    public double getRareChanceBonus(Player player) {
-        TranceData data = tranceDataMap.get(player.getUniqueId());
-        if (data == null)
-            return 0.0;
+            return 1.0;
 
         return getRareChanceBonus(data.getCurrentStage());
     }
 
-    /**
-     * 단계별 경험치 보너스
-     */
     private double getExpBonus(int stage) {
         return switch (stage) {
             case 1 -> 0.10; // 10%
             case 2 -> 0.20; // 20%
-            case 3 -> 0.30; // 30%
+            case 3 -> 0.30;
             default -> 0.0;
         };
     }
 
-    /**
-     * 단계별 드롭 보너스
-     */
-    private double getDropBonus(int stage) {
-        return switch (stage) {
-            case 2 -> 0.10; // 10%
-            case 3 -> 0.20; // 20%
-            default -> 0.0;
-        };
-    }
-
-    /**
-     * 단계별 희귀 아이템 확률 보너스
-     */
     private double getRareChanceBonus(int stage) {
-        return stage == 3 ? 0.05 : 0.0; // 3단계만 5%
+        return stage >= 3 ? 2.0 : 1.0; // 3단계만 2배
     }
 
-    /**
-     * 단계 이름
-     */
     private String getStageName(int stage) {
         return switch (stage) {
             case 1 -> "1단계";
@@ -184,9 +151,6 @@ public class MinersTrance implements Listener {
         };
     }
 
-    /**
-     * 몰입 데이터 클래스
-     */
     private static class TranceData {
         String chunkKey;
         long startTime;

@@ -32,11 +32,28 @@ public class MissionTemplate {
     // 초기화 주기 (DAILY, WEEKLY, ONE_TIME)
     private String resetCycle;
 
+    private String chainId; // 미션 체인 ID
+    private List<String> description; // 미션 설명 (Lore)
+    private org.bukkit.Material icon; // GUI 아이콘
+    private Map<String, Object> parsedConditions; // 파싱된 조건 목록
+
+    // Complex Rewards
+    private List<String> rewardCommands;
+    private List<String> rewardPermissions;
+    private String rewardTitle;
+    private String rewardSubtitle;
+    private List<String> rewardBuffs; // Format: EFFECT:LEVEL:DURATION
+
     public MissionTemplate() {
         this.targets = new ArrayList<>();
         this.conditions = new ArrayList<>();
         this.rewardJobExp = new HashMap<>();
         this.rewardItems = new ArrayList<>();
+        this.description = new ArrayList<>();
+        this.parsedConditions = new HashMap<>();
+        this.rewardCommands = new ArrayList<>();
+        this.rewardPermissions = new ArrayList<>();
+        this.rewardBuffs = new ArrayList<>();
     }
 
     // ==================== Getter & Setter ====================
@@ -127,6 +144,78 @@ public class MissionTemplate {
 
     public void setResetCycle(String resetCycle) {
         this.resetCycle = resetCycle;
+    }
+
+    public String getChainId() {
+        return chainId;
+    }
+
+    public void setChainId(String chainId) {
+        this.chainId = chainId;
+    }
+
+    public List<String> getDescription() {
+        return description;
+    }
+
+    public void setDescription(List<String> description) {
+        this.description = description;
+    }
+
+    public org.bukkit.Material getIcon() {
+        return icon;
+    }
+
+    public void setIcon(org.bukkit.Material icon) {
+        this.icon = icon;
+    }
+
+    public Map<String, Object> getParsedConditions() {
+        return parsedConditions;
+    }
+
+    public void setParsedConditions(Map<String, Object> parsedConditions) {
+        this.parsedConditions = parsedConditions;
+    }
+
+    public List<String> getRewardCommands() {
+        return rewardCommands;
+    }
+
+    public void setRewardCommands(List<String> rewardCommands) {
+        this.rewardCommands = rewardCommands;
+    }
+
+    public List<String> getRewardPermissions() {
+        return rewardPermissions;
+    }
+
+    public void setRewardPermissions(List<String> rewardPermissions) {
+        this.rewardPermissions = rewardPermissions;
+    }
+
+    public String getRewardTitle() {
+        return rewardTitle;
+    }
+
+    public void setRewardTitle(String rewardTitle) {
+        this.rewardTitle = rewardTitle;
+    }
+
+    public String getRewardSubtitle() {
+        return rewardSubtitle;
+    }
+
+    public void setRewardSubtitle(String rewardSubtitle) {
+        this.rewardSubtitle = rewardSubtitle;
+    }
+
+    public List<String> getRewardBuffs() {
+        return rewardBuffs;
+    }
+
+    public void setRewardBuffs(List<String> rewardBuffs) {
+        this.rewardBuffs = rewardBuffs;
     }
 
     /**

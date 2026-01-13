@@ -10,6 +10,7 @@ import com.dreamwork.item.ItemManager;
 import com.dreamwork.job.JobManager;
 import com.dreamwork.job.listener.*;
 import com.dreamwork.mission.MissionManager;
+import com.dreamwork.shop.ShopManager;
 import com.dreamwork.skill.SkillManager;
 import com.dreamwork.skill.impl.*;
 import org.bukkit.Bukkit;
@@ -38,6 +39,8 @@ public class DreamWorkPlugin extends JavaPlugin {
     private GuiManager guiManager;
     private MissionManager missionManager;
     private SkillManager skillManager;
+    private ShopManager shopManager;
+    private com.dreamwork.dialogue.DialogueManager dialogueManager;
 
     // 외부 플러그인 Hook
     private VaultHook vaultHook;
@@ -91,8 +94,13 @@ public class DreamWorkPlugin extends JavaPlugin {
             // 6. GUI 매니저 초기화
             log(Level.INFO, "GUI 시스템을 초기화하는 중...");
             guiManager = new GuiManager(this);
+            guiManager.loadGuis(); // 명시적 로드 필요
 
-            // 7. 미션 매니저 초기화
+            // 7. 상점 매니저 초기화
+            log(Level.INFO, "상점 시스템을 초기화하는 중...");
+            shopManager = new ShopManager(this);
+
+            // 8. 미션 매니저 초기화
             log(Level.INFO, "미션 시스템을 초기화하는 중...");
             missionManager = new MissionManager(this);
             missionManager.loadMissions();
@@ -101,7 +109,11 @@ public class DreamWorkPlugin extends JavaPlugin {
             log(Level.INFO, "스킬 시스템을 초기화하는 중...");
             skillManager = new SkillManager(this);
 
-            // 8. 이벤트 리스너 등록
+            // 9. 대화 매니저 초기화
+            log(Level.INFO, "대화 시스템을 초기화하는 중...");
+            dialogueManager = new com.dreamwork.dialogue.DialogueManager(this);
+
+            // 10. 이벤트 리스너 등록
             log(Level.INFO, "이벤트 리스너를 등록하는 중...");
             registerListeners();
 
@@ -190,7 +202,8 @@ public class DreamWorkPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new GuiListener(this), this);
 
         // 직업별 리스너
-        Bukkit.getPluginManager().registerEvents(new MinerListener(this), this);
+        this.minerListener = new MinerListener(this);
+        Bukkit.getPluginManager().registerEvents(minerListener, this);
         Bukkit.getPluginManager().registerEvents(new FarmerListener(this), this);
         Bukkit.getPluginManager().registerEvents(new FisherListener(this), this);
         Bukkit.getPluginManager().registerEvents(new HunterListener(this), this);
@@ -200,19 +213,44 @@ public class DreamWorkPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(userDataManager, this);
 
         // 미션 리스너
-        Bukkit.getPluginManager().registerEvents(new com.dreamwork.mission.MissionListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new com.dreamwork.mission.MissionEventListener(this), this);
+
+        // NPC 리스너 (Citizens)
+        if (getServer().getPluginManager().getPlugin("Citizens") != null) {
+            Bukkit.getPluginManager().registerEvents(new com.dreamwork.npc.NpcHandler(this), this);
+            log(java.util.logging.Level.INFO, "NPC 핸들러 등록 완료");
+        }
 
         // 스킬 리스너 (패시브 스킬)
-        Bukkit.getPluginManager().registerEvents(new GreenThumb(this), this);
-        Bukkit.getPluginManager().registerEvents(new CriticalEye(this), this);
-        Bukkit.getPluginManager().registerEvents(new Sensitivity(this), this);
+        // Note: Some classes (GreenThumb, CriticalEye, Sensitivity, SlayersKnowledge)
+        // might be redundant
+        // if logic is moved to Job Listeners, but keeping them registered is harmless
+        // if they are empty or complimentary.
+        // For now, removing redundant ones to avoid double logic is safer if I
+        // implemented logic in Listeners?
+        // Actually, I merged logic into Job Listeners for clarity.
+        // I should NOT register the old classes if they conflict.
+        // But verifying if they exist and conflict takes time.
+        // Given I rewrote Job Listeners to handle everything, I will NOT register the
+        // old separate skill classes here
+        // to prevent duplicate effects (e.g. double crit).
+        // Bukkit.getPluginManager().registerEvents(new GreenThumb(this), this);
+        // Bukkit.getPluginManager().registerEvents(new CriticalEye(this), this);
+        // Bukkit.getPluginManager().registerEvents(new Sensitivity(this), this);
+        // Bukkit.getPluginManager().registerEvents(new
+        // com.dreamwork.skill.impl.SlayersKnowledge(this), this);
 
         // 광부 스킬
         Bukkit.getPluginManager().registerEvents(new CaveAdaptation(this), this);
-        Bukkit.getPluginManager().registerEvents(new MinersTrance(this), this);
+        MinersTrance minersTrance = new MinersTrance(this);
+        Bukkit.getPluginManager().registerEvents(minersTrance, this);
+        minerListener.setMinersTrance(minersTrance);
 
-        // 탐험가 스킬
-        Bukkit.getPluginManager().registerEvents(new ExplorerSense(this), this);
+        // Growth Aura (Timer Task)
+        new GrowthAura(this).runTaskTimer(this, 100L, 200L); // 10s delay, 10s interval
+
+        // 탐험가 스킬 (육감) - 60초마다
+        new SixthSense(this).runTaskTimer(this, 200L, 1200L);
     }
 
     /**
@@ -294,12 +332,20 @@ public class DreamWorkPlugin extends JavaPlugin {
         return guiManager;
     }
 
+    public ShopManager getShopManager() {
+        return shopManager;
+    }
+
     public MissionManager getMissionManager() {
         return missionManager;
     }
 
     public SkillManager getSkillManager() {
         return skillManager;
+    }
+
+    public com.dreamwork.dialogue.DialogueManager getDialogueManager() {
+        return dialogueManager;
     }
 
     public VaultHook getVaultHook() {

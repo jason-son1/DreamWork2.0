@@ -14,8 +14,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 미션 게시판 GUI
@@ -28,6 +30,9 @@ public class MissionBoardGui extends DreamGui {
 
     private final DreamWorkPlugin plugin;
 
+    // 슬롯 -> 미션 ID 매핑
+    private final java.util.Map<Integer, String> slotMap = new java.util.HashMap<>();
+
     public MissionBoardGui(DreamWorkPlugin plugin, Player player) {
         super(plugin, player, "§d◆ 미션 게시판 📜 임무 목록 ◆", 6);
         this.plugin = plugin;
@@ -35,6 +40,8 @@ public class MissionBoardGui extends DreamGui {
 
     @Override
     public void initialize() {
+        slotMap.clear();
+
         // 배경 채우기
         ItemStack glass = createItem(Material.GRAY_STAINED_GLASS_PANE, " ", List.of());
         for (int i = 0; i < 54; i++) {
@@ -50,10 +57,20 @@ public class MissionBoardGui extends DreamGui {
 
     private void displayMissions() {
         UserData userData = plugin.getUserDataManager().getUserData(player);
-        Map<String, PlayerMissionData> missions = userData.getAllMissions();
+        Map<String, PlayerMissionData> allMissions = userData.getAllMissions();
+
+        // 진행 중이거나 보상 수령 대기 중인 미션만 필터링 및 정렬
+        List<PlayerMissionData> displayList = allMissions.values().stream()
+                .filter(m -> m.getStatus() != MissionStatus.CLAIMED) // 완료된(보상받은) 것은 숨김
+                .filter(m -> m.getStatus() != MissionStatus.NOT_STARTED)
+                .sorted(Comparator.comparing((PlayerMissionData m) -> m.getStatus() == MissionStatus.COMPLETED ? 0 : 1) // 완료된
+                                                                                                                        // 것
+                                                                                                                        // 우선
+                        .thenComparing(PlayerMissionData::getStartTime)) // 오래된 순
+                .collect(Collectors.toList());
 
         int slot = 10;
-        for (PlayerMissionData data : missions.values()) {
+        for (PlayerMissionData data : displayList) {
             // 슬롯 범위를 벗어나면 중단 (페이지 기능은 추후 구현)
             if (slot > 43)
                 break;
@@ -66,45 +83,62 @@ public class MissionBoardGui extends DreamGui {
             if (template == null)
                 continue;
 
-            inventory.setItem(slot++, createMissionItem(data, template));
+            inventory.setItem(slot, createMissionItem(data, template));
+            slotMap.put(slot, missionId);
+            slot++;
+        }
+
+        // 빈 슬롯에 안내 메시지
+        if (displayList.isEmpty()) {
+            inventory.setItem(22, createItem(Material.BOOK, "§7진행 중인 미션이 없습니다.",
+                    List.of("§7마을의 NPC를 만나거나", "§7새로운 활동을 시작해보세요!")));
         }
     }
 
     private ItemStack createMissionItem(PlayerMissionData data, MissionTemplate template) {
         MissionStatus status = data.getStatus();
-        Material material;
+
+        // 아이콘 설정 (템플릿 아이콘 또는 기본값)
+        Material material = template.getIcon();
+        if (material == null) {
+            material = (status == MissionStatus.COMPLETED) ? Material.EMERALD_BLOCK : Material.WRITABLE_BOOK;
+        }
+
         String titlePrefix;
         List<String> lore = new ArrayList<>();
 
-        // 상태에 따른 아이콘 및 설명 설정
+        if (template.getDescription() != null) {
+            lore.addAll(template.getDescription());
+            lore.add("§f▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
+        }
+
+        // 상태 표시
         if (status == MissionStatus.COMPLETED) {
-            material = Material.EMERALD_BLOCK;
             titlePrefix = "§a✅ [완료] ";
             lore.add("§a클릭하여 보상 수령!");
         } else if (status == MissionStatus.IN_PROGRESS) {
-            material = Material.WRITABLE_BOOK;
             titlePrefix = "§e⏳ [진행 중] ";
 
             // 진행도 표시
             int progress = data.getProgress();
             int max = template.getAmount();
-            int percent = (int) ((double) progress / max * 100);
+            int percent = max > 0 ? (int) ((double) progress / max * 100) : 0;
 
-            lore.add("§7진행도: §f" + progress + " / " + max + " §7(" + percent + "%)");
+            lore.add("§f진행도: §e" + progress + " §7/ §6" + max + " §7(" + percent + "%)");
             lore.add(createProgressBar(percent));
-        } else if (status == MissionStatus.CLAIMED) {
-            material = Material.BOOK;
-            titlePrefix = "§7✔ [완료됨] ";
-            lore.add("§7이미 보상을 수령했습니다.");
         } else {
-            material = Material.PAPER;
             titlePrefix = "§f[미션] ";
         }
 
         lore.add("§7");
         lore.add("§e[목표]");
-        for (String target : template.getTargets()) {
-            lore.add("§f- " + target + " " + template.getAmount() + "회");
+        // 심플한 목표 표시 (템플릿의 targets 활용)
+        if (template.getTargets() != null && !template.getTargets().isEmpty()) {
+            // 첫 번째 타겟만 대표로 표시하거나 "..." 처리
+            String targetName = template.getTargets().get(0);
+            lore.add("§f- " + targetName + ": " + template.getAmount() + "회");
+        } else {
+            lore.add("§f- " + template.getType().name());
         }
 
         lore.add("§7");
@@ -113,25 +147,29 @@ public class MissionBoardGui extends DreamGui {
             lore.add("§f- " + template.getRewardMoney() + "G");
         }
         if (template.getRewardJobExp() != null && !template.getRewardJobExp().isEmpty()) {
-            lore.add("§f- 직업 경험치");
+            template.getRewardJobExp().forEach((job, exp) -> lore.add("§f- " + job + ": " + exp + " EXP"));
         }
         if (!template.getRewardItems().isEmpty()) {
             lore.add("§f- 아이템 " + template.getRewardItems().size() + "종");
+        }
+        if (template.getRewardBuffs() != null && !template.getRewardBuffs().isEmpty()) {
+            lore.add("§f- 특수 버프");
         }
 
         // 아이템 생성
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(titlePrefix + template.getDisplayName());
-        meta.setLore(lore);
+        if (meta != null) {
+            meta.setDisplayName(titlePrefix + template.getDisplayName());
+            meta.setLore(lore);
 
-        // 완료 상태면 글로우 효과
-        if (status == MissionStatus.COMPLETED) {
-            meta.addEnchant(org.bukkit.enchantments.Enchantment.LUCK_OF_THE_SEA, 1, true);
-            meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
+            // 완료 상태면 글로우 효과
+            if (status == MissionStatus.COMPLETED) {
+                meta.addEnchant(org.bukkit.enchantments.Enchantment.LUCK_OF_THE_SEA, 1, true);
+                meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
+            }
+            item.setItemMeta(meta);
         }
-
-        item.setItemMeta(meta);
         return item;
     }
 
@@ -159,45 +197,17 @@ public class MissionBoardGui extends DreamGui {
             return;
         }
 
-        // 미션 아이템 클릭
-        ItemStack item = event.getCurrentItem();
-        if (item == null || item.getType() == Material.GRAY_STAINED_GLASS_PANE)
-            return;
-
-        // 아이템에서 미션 정보를 역추적하기 어려우므로 슬롯 인덱스로 매핑하거나 NBT를 써야하는데,
-        // 여기서는 다시 로직을 돌려서 찾기보다는 간단하게 클릭 시 동작을 정의합니다.
-        // 현재 구조상 슬롯과 미션 매핑을 저장해두는 것이 좋습니다.
-        // 하지만 간단하게 구현하기 위해, UserData를 순회하며 해당 슬롯에 맞는 미션을 찾습니다.
-
-        UserData userData = plugin.getUserDataManager().getUserData(player);
-        Map<String, PlayerMissionData> missions = userData.getAllMissions();
-
-        int currentSlot = 10;
-        String clickedMissionId = null;
-
-        for (PlayerMissionData data : missions.values()) {
-            if (currentSlot > 43)
-                break;
-            if (currentSlot % 9 == 8)
-                currentSlot += 2;
-
-            if (currentSlot == slot) {
-                clickedMissionId = data.getMissionId();
-                break;
-            }
-            currentSlot++;
-        }
-
-        if (clickedMissionId != null) {
-            PlayerMissionData data = userData.getMission(clickedMissionId);
-            if (data.getStatus() == MissionStatus.COMPLETED) {
+        // 슬롯 매핑 확인
+        String missionId = slotMap.get(slot);
+        if (missionId != null) {
+            PlayerMissionData data = plugin.getUserDataManager().getUserData(player).getMission(missionId);
+            if (data != null && data.getStatus() == MissionStatus.COMPLETED) {
                 // 보상 수령
-                plugin.getMissionManager().completeMission(player, clickedMissionId);
-                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
-
+                plugin.getMissionManager().completeMission(player, missionId);
                 // GUI 갱신
                 refresh();
             } else {
+                // 진행 중인 미션 클릭 시 (상세 정보 띄우기 등 가능하나 일단 소리만)
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
             }
         }
