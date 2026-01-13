@@ -220,10 +220,13 @@ public class DreamWorkPlugin extends JavaPlugin {
         // 미션 리스너
         Bukkit.getPluginManager().registerEvents(new com.dreamwork.mission.MissionEventListener(this), this);
 
-        // NPC 리스너 (Citizens)
+        // NPC 리스너 (General & Citizens)
+        Bukkit.getPluginManager().registerEvents(new com.dreamwork.handler.NpcHandler(this), this);
+
         if (getServer().getPluginManager().getPlugin("Citizens") != null) {
-            Bukkit.getPluginManager().registerEvents(new com.dreamwork.npc.NpcHandler(this), this);
-            log(java.util.logging.Level.INFO, "NPC 핸들러 등록 완료");
+            // Citizens specific handler if needed, but the general one handles basic
+            // interaction
+            log(java.util.logging.Level.INFO, "Citizens 플러그인 감지됨");
         }
 
         // 스킬 리스너 (패시브 스킬)

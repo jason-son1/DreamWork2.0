@@ -218,23 +218,86 @@ public class FarmerListener implements Listener {
             return;
         }
 
-        // 이미 비료가 뿌려져 있는지 확인 (Metadata)
-        if (block.hasMetadata("dw_fertilized")) {
-            player.sendMessage("§c이미 비료가 뿌려져 있는 땅입니다.");
-            return;
+        // PDC에 저장 (TileBlock)
+        if (block.getState() instanceof org.bukkit.block.TileState tileState) {
+            org.bukkit.persistence.PersistentDataContainer pdc = tileState.getPersistentDataContainer();
+            NamespacedKey key = new NamespacedKey(plugin, "fertilized");
+
+            if (pdc.has(key, org.bukkit.persistence.PersistentDataType.BYTE)) {
+                player.sendMessage("§c이미 비료가 뿌려져 있는 땅입니다.");
+                return;
+            }
+
+            // 비료 적용
+            if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+                item.setAmount(item.getAmount() - 1);
+            }
+
+            pdc.set(key, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+            tileState.update();
+
+            block.getWorld().spawnParticle(org.bukkit.Particle.HEART, block.getLocation().add(0.5, 1, 0.5), 5);
+            player.playSound(block.getLocation(), org.bukkit.Sound.ITEM_BONE_MEAL_USE, 1.0f, 1.0f);
+            player.sendMessage("§a[농부] §f땅에 영양분을 공급했습니다.");
+        } else {
+            // 일반 흙/경작지가 TileState가 아닐 수 있음 (보통은 아님).
+            // 하지만 1.14+ API에서 PersistentDataContainer는 TileState(Tile Entity)에만 존재.
+            // Farmland는 Tile Entity가 아님. 따라서 Block의 PDC를 쓰려면 청크 단위로 저장하거나
+            // Display Entity 등을 활용해야 함.
+            // 하지만 요구사항은 "영구 저장"임.
+            // Farmland 자체는 Tile Entity가 아니므로 block.getState()는 BlockState를 반환하지만 TileState는
+            // 아님.
+            // 따라서 PDC를 쓸 수 없음.
+            // 대안: 해당 좌표를 BlockData나 별도 DB/Config에 저장해야 함.
+            // 또는 Display Entity (Invisible)를 소환해서 마커로 쓰거나.
+            // 가장 간단한 "플러그인 내장 PDC" 방법은 없음. (TileEntity가 아니므로)
+            // 기획서에는 "PDC(TileState)를 사용하여..." 라고 되어있으나, 기술적으로 Farmland는 TileState가 아님.
+            // 사용자가 이 기술적 한계를 모를 수 있음.
+            // 대안 1: 해당 위치에 보이지 않는 ArmorStand/Display 엔티티를 박고 거기에 PDC 저장.
+            // 대안 2: 별도 YML/DB에 좌표 저장 (DreamWork 자체 데이터).
+            // 대안 3: Metadata는 휘발성이니, 이를 CustomBlockData (Paper/Libraries) 로 해결? (라이브러리 없음)
+
+            // 여기서는 사용자 요청("PDC 사용")을 최대한 따르되, Farmland가 TileState가 아님을 인지하고
+            // "경작지(Farmland)" 대신 "화분"이나 "배럴"이 아니라 진짜 땅임.
+            // 기술적 타협:
+            // 1. Coarse Dirt 등 다른 블록으로 변경? (X)
+            // 2. 좌표를 UserDataManager나 별도 Manager에 저장? (복잡)
+            // 3. (가장 현실적) 1.20.4+의 경우 BlockDisplay 등을 사용.
+            // 하지만 여기서는 간단히 하기 위해 "비료" 개념을 "뿌리는 즉시 효과(성장)" 가 아니라 "지속 효과"로 하려면 표시가 필요함.
+            // 일단 코드를 작성하되, TileState 체크를 넣고, 만약 Farmland가 TileState가 아니라면
+            // 실행되지 않거나 로그를 남기도록 해야 함.
+            // *중요*: 사용자가 콕 집어 "TileState"라고 했으므로, 사용자는 Farmland가 TileEntity라고 착각했거나
+            // 혹은 모드/플러그인 환경에서 그렇다고 가정함.
+            // 하지만 바닐라에서 Farmland는 TileEntity가 아님.
+            // 일단 TileState로 캐스팅 시도하고, 안되면 Metadata로 (휘발성) fallback 하거나 메시지 출력.
+
+            // 수정: Metadata 유지 (휘발성 감수)하거나,
+            // 이 Plan의 핵심인 "Persistence"를 위해서는 별도 저장이 필수.
+            // 여기서는 "PDC" 지시를 따르되, TileState가 아닐 경우를 대비해
+            // **청크 PDC** (Chunk PersistentDataContainer)를 사용하는 것이 정석임.
+
+            // 청크 내 비료 위치 저장 (문자열 리스트 등)
+            // 복잡도 증가...
+            // 일단 사용자의 지시 "PDC(TileState)를 사용하여" 에 집중.
+            // 만약 Farmland가 안된다면, 그냥 원래대로 Metadata를 쓰되 주석으로 남기는게 나을 수도 있음.
+            // 아니면, **Display Entity** (Marker)를 하나 소환해서 거기에 태그를 붙이는게 가장 깔끔함 (요즘 방식).
+
+            // 여기서는 "마커 엔티티" 방식을 선택하겠습니다. (PDC 활용 가능)
+            block.getWorld().spawn(block.getLocation().add(0.5, 0.5, 0.5), org.bukkit.entity.Marker.class, marker -> {
+                marker.getPersistentDataContainer().set(new NamespacedKey(plugin, "fertilizer_effect"),
+                        org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+                marker.setCustomName("§a비료");
+                marker.setCustomNameVisible(false);
+            });
+
+            // 비료 적용 (시각적 + 소리)
+            if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+                item.setAmount(item.getAmount() - 1);
+            }
+            block.getWorld().spawnParticle(org.bukkit.Particle.HEART, block.getLocation().add(0.5, 1, 0.5), 5);
+            player.playSound(block.getLocation(), org.bukkit.Sound.ITEM_BONE_MEAL_USE, 1.0f, 1.0f);
+            player.sendMessage("§a[농부] §f땅에 영양분을 공급(영구적)했습니다.");
         }
-
-        // 비료 적용
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-
-        // 메타데이터 저장 (서버 리로드 시 사라짐, 영구 저장은 PDC BlockState 필요하나 여기선 간단히)
-        block.setMetadata("dw_fertilized", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
-
-        block.getWorld().spawnParticle(org.bukkit.Particle.HEART, block.getLocation().add(0.5, 1, 0.5), 5);
-        player.playSound(block.getLocation(), org.bukkit.Sound.ITEM_BONE_MEAL_USE, 1.0f, 1.0f);
-        player.sendMessage("§a[농부] §f땅에 영양분을 공급했습니다.");
     }
 
     private void setQuality(ItemStack item, int quality) {
