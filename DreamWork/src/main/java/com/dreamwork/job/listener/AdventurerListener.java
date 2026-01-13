@@ -78,6 +78,9 @@ public class AdventurerListener implements Listener {
         if (level < 10)
             return;
 
+        if (player.isFlying())
+            return;
+
         Block block = player.getLocation().getBlock().getRelative(BlockFace.DOWN);
         applySpeedBoost(player, block.getType(), level);
 
@@ -199,6 +202,15 @@ public class AdventurerListener implements Listener {
             return;
         }
 
+        // Biome Capsule Logic
+        String itemId = plugin.getItemManager().getDreamItemId(item);
+        if ("biome_capsule".equals(itemId)) {
+            // Empty Capsule -> Fill
+            fillBiomeCapsule(player, item);
+            event.setCancelled(true);
+            return;
+        }
+
         // Coordinate Scroll Usage
         if (item.getType() == Material.PAPER && item.hasItemMeta()) {
             PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
@@ -218,6 +230,31 @@ public class AdventurerListener implements Listener {
                 event.setCancelled(true);
             }
         }
+    }
+
+    private void fillBiomeCapsule(Player player, ItemStack item) {
+        // 쿨다운 등 체크
+        Biome biome = player.getLocation().getBlock().getBiome();
+        String biomeName = biome.name();
+
+        // 캡슐 채우기 (아이템 소모 + 새로운 아이템 지급 or 메타 변경)
+        // 메타 변경이 간단함
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName("§b바이옴 캡슐: §f" + biomeName);
+
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(new NamespacedKey(plugin, "stored_biome"), PersistentDataType.STRING, biomeName);
+
+        // ID 변경 (filled_biome_capsule) - ItemManager를 통해 템플릿 로드하면 좋지만,
+        // 여기선 메타만 변경하여 "충전된" 상태로 만듦.
+        // 혹은 아이템 교체
+        item.setItemMeta(meta);
+
+        player.sendMessage("§a현재 바이옴(" + biomeName + ")을 캡슐에 담았습니다.");
+        player.playSound(player.getLocation(), Sound.ITEM_BOTTLE_FILL, 1.0f, 1.0f);
+
+        // 미션 진행
+        plugin.getMissionManager().processEvent(player, MissionType.VISIT_BIOME, biomeName, 1);
     }
 
     private void useRecallStone(Player player, ItemStack item) {

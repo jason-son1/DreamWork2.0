@@ -10,7 +10,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -150,8 +149,43 @@ public class ForgeGui extends DreamGui {
             if (currentTab == Tab.IDENTIFY)
                 processIdentify();
             else if (currentTab == Tab.ALLOY)
-                player.sendMessage("§e합금 기능 개발 중");
+                processAlloy();
         }
+    }
+
+    private void processAlloy() {
+        ItemStack input1 = inventory.getItem(ALLOY_INPUT_1);
+        ItemStack input2 = inventory.getItem(ALLOY_INPUT_2);
+
+        if (input1 == null || input2 == null || input1.getType().isAir() || input2.getType().isAir()) {
+            player.sendMessage("§c재료를 모두 넣어주세요.");
+            return;
+        }
+
+        // 결과창 확인
+        ItemStack currentOutput = inventory.getItem(ALLOY_OUTPUT);
+        if (currentOutput != null && !currentOutput.getType().isAir()) {
+            player.sendMessage("§c결과 슬롯을 비워주세요.");
+            return;
+        }
+
+        // 제작 시도
+        ItemStack result = provider.tryCreateAlloy(input1, input2);
+
+        if (result == null) {
+            player.sendMessage("§c유효한 합금 레시피가 아닙니다.");
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            return;
+        }
+
+        // 성공
+        input1.setAmount(input1.getAmount() - 1);
+        input2.setAmount(input2.getAmount() - 1);
+
+        inventory.setItem(ALLOY_OUTPUT, result);
+
+        player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_USE, 1.0f, 0.8f);
+        player.sendMessage("§a합금 제작에 성공했습니다!");
     }
 
     private void switchTab(Tab tab) {

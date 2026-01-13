@@ -62,8 +62,15 @@ public class CitizensHook implements Listener {
 
         plugin.debug(player.getName() + "이(가) NPC #" + npcId + " (" + npc.getName() + ") 클릭");
 
-        // NPC ID에 따른 기능 실행
-        // 설정 파일에서 NPC 역할 확인
+        // 1. 대화 시스템 확인 (우선 순위)
+        // NPC ID 또는 이름으로 대화 스크립트 검색
+        String idStr = String.valueOf(npcId);
+        if (plugin.getDialogueManager().hasDialogue(idStr)) {
+            plugin.getDialogueManager().startDialogue(player, idStr);
+            return;
+        }
+
+        // 2. NPC 역할 확인 (Hardcoded logic / npcs.yml)
         String npcRole = getNPCRole(npcId);
 
         if (npcRole != null) {

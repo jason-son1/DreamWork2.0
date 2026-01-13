@@ -84,4 +84,72 @@ public class ForgeProvider {
         // 기본 꽝 (돌)
         return new ItemStack(Material.STONE, 1);
     }
+
+    /**
+     * 합금 제작 시도
+     * 
+     * @param input1 첫 번째 재료
+     * @param input2 두 번째 재료
+     * @return 성공 시 결과물, 실패 시 null
+     */
+    public ItemStack tryCreateAlloy(ItemStack input1, ItemStack input2) {
+        if (input1 == null || input2 == null)
+            return null;
+
+        FileConfiguration config = plugin.getConfigManager().getJobConfig("miner");
+        if (config == null)
+            return null;
+
+        ConfigurationSection alloys = config.getConfigurationSection("forge.alloys");
+        if (alloys == null)
+            return null;
+
+        for (String key : alloys.getKeys(false)) {
+            ConfigurationSection recipe = alloys.getConfigurationSection(key + ".recipe");
+            if (recipe == null)
+                continue;
+
+            // 재료 확인 (순서 무관 체크)
+            if (matchRecipe(recipe, input1, input2)) {
+                String resultId = alloys.getString(key + ".result");
+                int amount = alloys.getInt(key + ".amount", 1);
+
+                if (resultId != null) {
+                    return plugin.getItemManager().createItem(resultId, amount);
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean matchRecipe(ConfigurationSection recipe, ItemStack i1, ItemStack i2) {
+        String mat1 = recipe.getString("input1");
+        String mat2 = recipe.getString("input2");
+
+        if (mat1 == null || mat2 == null)
+            return false;
+
+        // Case 1: i1=mat1, i2=mat2
+        if (checkItem(i1, mat1) && checkItem(i2, mat2))
+            return true;
+        // Case 2: i1=mat2, i2=mat1
+        if (checkItem(i1, mat2) && checkItem(i2, mat1))
+            return true;
+
+        return false;
+    }
+
+    private boolean checkItem(ItemStack item, String idOrMaterial) {
+        // 드림 아이템 ID 먼저 체크
+        if (plugin.getItemManager().isItem(item, idOrMaterial))
+            return true;
+        // 바닐라 Material 체크
+        try {
+            Material m = Material.matchMaterial(idOrMaterial);
+            if (m != null && item.getType() == m)
+                return true;
+        } catch (Exception e) {
+        }
+        return false;
+    }
 }

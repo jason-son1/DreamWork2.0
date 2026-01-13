@@ -45,9 +45,28 @@ public class MinerListener implements Listener {
     // Helper to get trance if not set (fallback)
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockPlace(org.bukkit.event.block.BlockPlaceEvent event) {
+        if (!event.canBuild())
+            return;
+
+        Block block = event.getBlockPlaced();
+        // 광물인 경우에만 메타데이터 설정 (메모리 절약)
+        String type = block.getType().name();
+        if (type.contains("ORE") || type.contains("ANCIENT_DEBRIS")) {
+            block.setMetadata("dw_placed", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
         Block block = event.getBlock();
+
+        // 0. 설치된 블록인지 확인 (어뷰징 방지)
+        if (block.hasMetadata("dw_placed")) {
+            return;
+        }
+
         Material material = block.getType();
         String materialKey = material.name().toLowerCase();
 

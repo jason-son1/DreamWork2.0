@@ -75,6 +75,13 @@ public class TownyHook {
     }
 
     /**
+     * 농장 구역인지 확인
+     */
+    public boolean isFarmPlot(Location location) {
+        return isPlotType(location, TownBlockType.FARM);
+    }
+
+    /**
      * 해당 위치의 타운 이름 가져오기
      */
     public String getTownName(Location location) {

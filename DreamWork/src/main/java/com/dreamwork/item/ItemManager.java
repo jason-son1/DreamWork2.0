@@ -273,11 +273,27 @@ public class ItemManager {
     }
 
     /**
-     * 아이템이 특정 ID인지 확인
+     * 아이템이 특정 ID인지 확인 (엄격한 검증)
      */
     public boolean isItem(ItemStack item, String id) {
         String itemId = getDreamItemId(item);
-        return itemId != null && itemId.equals(id);
+        if (itemId == null || !itemId.equals(id))
+            return false;
+
+        // 추가 검증: 템플릿과 재질/모델데이터 일치 여부 확인
+        DreamItemTemplate template = itemCache.get(id);
+        if (template != null) {
+            if (item.getType() != template.getMaterial()) {
+                return false;
+            }
+            if (template.getCustomModelData() > 0) {
+                if (!item.hasItemMeta() || !item.getItemMeta().hasCustomModelData() ||
+                        item.getItemMeta().getCustomModelData() != template.getCustomModelData()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**

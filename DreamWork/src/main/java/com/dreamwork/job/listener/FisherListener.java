@@ -66,15 +66,21 @@ public class FisherListener implements Listener {
         ItemStack offhand = player.getInventory().getItemInOffHand();
         String baitType = getBaitType(offhand);
 
-        // 2. 커스텀 물고기
+        // 2. 커스텀 물고기 (전설 어종 등)
+        boolean customCaught = false;
         if ("krill".equals(baitType)) {
-            tryCatchCustomFish(caughtItem, config);
+            customCaught = tryCatchCustomFish(caughtItem, config, player);
         }
 
-        // 3. 보상 처리
+        // 3. 일반 물고기도 '살아있는 물고기'로 변환 (사이즈/품질 시스템 적용)
+        if (!customCaught) {
+            convertToLiveFish(caughtItem, config);
+        }
+
+        // 4. 보상 처리
         processRewards(player, caughtItem.getItemStack(), level, config, baitType);
 
-        // 4. 미끼 소모
+        // 5. 미끼 소모
         if (baitType != null) {
             boolean save = level >= 50 && random.nextDouble() < 0.20;
             if (!save) {
@@ -82,14 +88,20 @@ public class FisherListener implements Listener {
             }
         }
 
-        // 5. 내구도 보존
+        // 6. 내구도 보존
         if (level >= 50 && random.nextDouble() < 0.20) {
-            // Logic for durability save (optional/stub for now)
+            // Logic for durability save (already handled by listener priority or separate
+            // event usually,
+            // but for PlayerFishEvent, we cannot easily restore durability of rod here
+            // unless we repair it.)
+            // Or we use PlayerItemDamageEvent (better).
+            // Ignoring for now as per minimal viable plan.
         }
     }
 
-    private boolean tryCatchCustomFish(Item caughtEntity, FileConfiguration config) {
+    private boolean tryCatchCustomFish(Item caughtEntity, FileConfiguration config, Player player) {
         if (random.nextDouble() < 0.05) {
+            plugin.debug("Custom Fish Catch Triggered for " + player.getName());
             boolean tuna = random.nextBoolean();
             String key = tuna ? "tuna" : "king_salmon";
 
@@ -110,20 +122,59 @@ public class FisherListener implements Listener {
             caughtEntity.setItemStack(customFish);
 
             if (size > maxSize * 0.9) {
-                // Use player name directly since item parent is effectively player in context
-                // or just use player object passed to method
-                // To broadcast, we need player name.
-                // We don't have player passed to this specific helper except implicitly or if
-                // we pass it.
-                // Wait, I am not passing Player to tryCatchCustomFish.
-                // I should grab it from context or not trigger broadcast here?
-                // But I need to broadcast.
-                // I will fix the caller to pass Player or handle broadcast outside.
-                // Let's modify signature to accept Player.
+                // 월척 알림
+                plugin.getServer().broadcastMessage("§e[어부] §f" + player.getName() + "님이 거대한 §b" + display
+                        + "§f을(를) 낚았습니다! (§a" + String.format("%.1f", size) + "cm§f)");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 0.5f);
             }
             return true;
         }
         return false;
+    }
+
+    private void convertToLiveFish(Item caughtEntity, FileConfiguration config) {
+        ItemStack fish = caughtEntity.getItemStack();
+        Material type = fish.getType();
+
+        // 물고기 종류인지 확인
+        if (!isFish(type))
+            return;
+
+        ItemMeta meta = fish.getItemMeta();
+        if (meta == null)
+            return;
+
+        // 이미 커스텀 데이터가 있으면 스킵
+        if (meta.getPersistentDataContainer().has(fishTypeKey, PersistentDataType.STRING))
+            return;
+
+        // 사이즈 생성 (일반 물고기: 10~50cm)
+        double minSize = 10.0;
+        double maxSize = 50.0;
+        double size = minSize + (random.nextDouble() * (maxSize - minSize));
+
+        String koreanName = getKoreanFishName(type);
+        meta.setDisplayName("§f" + koreanName + " (" + String.format("%.1f", size) + "cm)");
+        meta.getPersistentDataContainer().set(fishTypeKey, PersistentDataType.STRING, type.name().toLowerCase());
+        meta.getPersistentDataContainer().set(fishSizeKey, PersistentDataType.DOUBLE, size);
+
+        fish.setItemMeta(meta);
+        caughtEntity.setItemStack(fish);
+    }
+
+    private boolean isFish(Material mat) {
+        return mat == Material.COD || mat == Material.SALMON || mat == Material.PUFFERFISH
+                || mat == Material.TROPICAL_FISH;
+    }
+
+    private String getKoreanFishName(Material mat) {
+        return switch (mat) {
+            case COD -> "대구";
+            case SALMON -> "연어";
+            case PUFFERFISH -> "복어";
+            case TROPICAL_FISH -> "열대어";
+            default -> "물고기";
+        };
     }
 
     private void processRewards(Player player, ItemStack fish, int level, FileConfiguration config) {
