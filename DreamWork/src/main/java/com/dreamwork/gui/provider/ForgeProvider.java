@@ -86,11 +86,28 @@ public class ForgeProvider {
     }
 
     /**
+     * 미감정 아이템인지 확인
+     */
+    public boolean isUnidentified(ItemStack item) {
+        if (item == null || !item.hasItemMeta())
+            return false;
+
+        // 1. ID 체크 (하위 호환)
+        String id = plugin.getItemManager().getDreamItemId(item);
+        if ("unknown_ore".equals(id))
+            return true;
+
+        // 2. PDC 체크
+        org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(plugin, "dw_unidentified");
+        return item.getItemMeta().getPersistentDataContainer().has(key, org.bukkit.persistence.PersistentDataType.BYTE);
+    }
+
+    /**
      * 합금 제작 시도
      * 
      * @param input1 첫 번째 재료
      * @param input2 두 번째 재료
-     * @return 성공 시 결과물, 실패 시 null
+     * @return 결과물 (성공/실패 포함), 레시피 없으면 null
      */
     public ItemStack tryCreateAlloy(ItemStack input1, ItemStack input2) {
         if (input1 == null || input2 == null)
@@ -111,6 +128,20 @@ public class ForgeProvider {
 
             // 재료 확인 (순서 무관 체크)
             if (matchRecipe(recipe, input1, input2)) {
+
+                // 확률 체크
+                double failChance = alloys.getDouble(key + ".failure_chance", 0.0);
+                if (failChance > 0 && random.nextDouble() < failChance) {
+                    // 실패 처리
+                    String failResultId = alloys.getString(key + ".failure_result");
+                    if (failResultId != null) {
+                        return plugin.getItemManager().createItem(failResultId, 1);
+                    }
+                    // 기본 실패 부산물: 석탄
+                    return new ItemStack(Material.COAL);
+                }
+
+                // 성공
                 String resultId = alloys.getString(key + ".result");
                 int amount = alloys.getInt(key + ".amount", 1);
 

@@ -32,6 +32,13 @@ public class NpcHandler implements Listener {
         // NPC ID 결정 (config에서 매핑된 이름과 비교)
         String npcId = getNpcId(npcName, config);
 
+        // 1. NPC 상호작용 미션 트리거
+        plugin.getMissionManager().processEvent(player, com.dreamwork.mission.MissionType.INTERACT_NPC, npcName, 1);
+        if (npcId != null) {
+            plugin.getMissionManager().processEvent(player, com.dreamwork.mission.MissionType.DELIVERY, npcId, 1);
+            plugin.getMissionManager().processEvent(player, com.dreamwork.mission.MissionType.INTERACT_NPC, npcId, 1);
+        }
+
         if (npcId == null) {
             // 매핑되지 않은 NPC
             return;

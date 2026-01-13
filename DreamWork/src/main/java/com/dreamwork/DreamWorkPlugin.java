@@ -41,6 +41,7 @@ public class DreamWorkPlugin extends JavaPlugin {
     private SkillManager skillManager;
     private ShopManager shopManager;
     private com.dreamwork.dialogue.DialogueManager dialogueManager;
+    private com.dreamwork.job.BountyManager bountyManager;
 
     // 외부 플러그인 Hook
     private VaultHook vaultHook;
@@ -112,6 +113,10 @@ public class DreamWorkPlugin extends JavaPlugin {
             // 9. 대화 매니저 초기화
             log(Level.INFO, "대화 시스템을 초기화하는 중...");
             dialogueManager = new com.dreamwork.dialogue.DialogueManager(this);
+
+            // 11. 현상수배 매니저 초기화
+            log(Level.INFO, "현상수배 시스템을 초기화하는 중...");
+            bountyManager = new com.dreamwork.job.BountyManager(this);
 
             // 10. 이벤트 리스너 등록
             log(Level.INFO, "이벤트 리스너를 등록하는 중...");
@@ -346,6 +351,10 @@ public class DreamWorkPlugin extends JavaPlugin {
 
     public com.dreamwork.dialogue.DialogueManager getDialogueManager() {
         return dialogueManager;
+    }
+
+    public com.dreamwork.job.BountyManager getBountyManager() {
+        return bountyManager;
     }
 
     public VaultHook getVaultHook() {

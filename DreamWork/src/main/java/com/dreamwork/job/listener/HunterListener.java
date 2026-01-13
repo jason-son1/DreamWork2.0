@@ -184,6 +184,12 @@ public class HunterListener implements Listener {
         if (killer == null)
             return;
 
+        // Towny 확인 (도시 내에서 보상 획득 제한)
+        if (plugin.getTownyHook().isEnabled() && plugin.getTownyHook().getTownName(entity.getLocation()) != null) {
+            // 도시 내부에서는 보상 없음 (어뷰징 방지)
+            return;
+        }
+
         // Kill Count Update
         incrementKillCount(killer, entity.getType());
 
@@ -191,8 +197,20 @@ public class HunterListener implements Listener {
         String mobKey = entity.getType().name().toLowerCase();
         boolean isElite = entity.getPersistentDataContainer().has(eliteKey, PersistentDataType.BYTE);
 
-        if (isElite)
+        if (isElite) {
             mobKey = "elite_mob";
+
+            // 엘리트 몹 드롭 처리
+            if (event.getDrops().isEmpty()) {
+                event.getDrops().add(new ItemStack(Material.GOLD_NUGGET));
+            }
+
+            // 첫 번째 드롭 아이템을 엘리트 전리품으로 변환
+            if (!event.getDrops().isEmpty()) {
+                ItemStack drop = event.getDrops().get(0);
+                plugin.getItemManager().setEliteMobDrop(drop, entity.getType().name());
+            }
+        }
 
         FileConfiguration config = plugin.getConfigManager().getJobConfig("hunter");
         double exp = 0;
@@ -208,6 +226,20 @@ public class HunterListener implements Listener {
         if (kills >= 1000) {
             exp *= 1.2;
             money *= 1.2;
+        }
+
+        // 현상수배 보너스
+        if (plugin.getBountyManager().getCurrentTarget() == entity.getType()) {
+            double multiplier = plugin.getBountyManager().getRewardMultiplier();
+            exp *= multiplier;
+            money *= multiplier;
+
+            // 현상수배 완료 알림 (보상 획득 시)
+            if (exp > 0 || money > 0) {
+                killer.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
+                        new net.md_5.bungee.api.chat.ComponentBuilder(
+                                "§c[현상수배] §f목표 처치! 보상 §6x" + String.format("%.1f", multiplier)).create());
+            }
         }
 
         if (exp > 0 || money > 0) {

@@ -31,12 +31,10 @@ public class FisherListener implements Listener {
     private final DreamWorkPlugin plugin;
     private final Random random = new Random();
     private final NamespacedKey fishTypeKey;
-    private final NamespacedKey fishSizeKey;
 
     public FisherListener(DreamWorkPlugin plugin) {
         this.plugin = plugin;
         this.fishTypeKey = new NamespacedKey(plugin, "fish_type");
-        this.fishSizeKey = new NamespacedKey(plugin, "fish_size");
     }
 
     /**
@@ -45,6 +43,17 @@ public class FisherListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerFish(PlayerFishEvent event) {
         Player player = event.getPlayer();
+
+        // Towny 지역 확인
+        if (plugin.getTownyHook().isEnabled()) {
+            // 어부는 '자신의 타운' 제약이 있는지 기획서 확인 필요.
+            // 보통 남의 타운에서 낚시 금지 or 보상 없음.
+            // 여기서는 "타운 내부가 아니면 특수 작물이... 스킬 발동 불가" 일반 규칙 적용.
+            if (plugin.getTownyHook().getTownName(player.getLocation()) != null &&
+                    !plugin.getTownyHook().isInOwnTown(player, player.getLocation())) {
+                return;
+            }
+        }
 
         int level = plugin.getUserDataManager().getUserData(player).getJobLevel(JobType.FISHER);
 
@@ -90,12 +99,7 @@ public class FisherListener implements Listener {
 
         // 6. 내구도 보존
         if (level >= 50 && random.nextDouble() < 0.20) {
-            // Logic for durability save (already handled by listener priority or separate
-            // event usually,
-            // but for PlayerFishEvent, we cannot easily restore durability of rod here
-            // unless we repair it.)
-            // Or we use PlayerItemDamageEvent (better).
-            // Ignoring for now as per minimal viable plan.
+            // Logic for durability save
         }
     }
 
@@ -107,18 +111,26 @@ public class FisherListener implements Listener {
 
             Material mat = Material.matchMaterial(config.getString("fish_table." + key + ".base_material", "COD"));
             ItemStack customFish = new ItemStack(mat != null ? mat : Material.COD);
-            ItemMeta meta = customFish.getItemMeta();
 
-            String display = config.getString("fish_table." + key + ".display_name", key);
+            // ItemManager로 데이터 설정 (크기 등)
             double minSize = config.getDouble("fish_table." + key + ".min_size", 50.0);
             double maxSize = config.getDouble("fish_table." + key + ".max_size", 100.0);
             double size = minSize + (random.nextDouble() * (maxSize - minSize));
 
-            meta.setDisplayName(display + " §f(" + String.format("%.1f", size) + "cm)");
-            meta.getPersistentDataContainer().set(fishTypeKey, PersistentDataType.STRING, key);
-            meta.getPersistentDataContainer().set(fishSizeKey, PersistentDataType.DOUBLE, size);
-
+            // 기본 이름 설정 (ItemManager가 덮어쓸 수도 있지만, DisplayName이 필요)
+            ItemMeta meta = customFish.getItemMeta();
+            String display = config.getString("fish_table." + key + ".display_name", key);
+            meta.setDisplayName(display);
             customFish.setItemMeta(meta);
+
+            // ItemManager 유틸리티 사용
+            customFish = plugin.getItemManager().setFishData(customFish, size);
+
+            // PDC 추가 설정 (물고기 타입)
+            meta = customFish.getItemMeta();
+            meta.getPersistentDataContainer().set(fishTypeKey, PersistentDataType.STRING, key);
+            customFish.setItemMeta(meta);
+
             caughtEntity.setItemStack(customFish);
 
             if (size > maxSize * 0.9) {
@@ -140,25 +152,22 @@ public class FisherListener implements Listener {
         if (!isFish(type))
             return;
 
-        ItemMeta meta = fish.getItemMeta();
-        if (meta == null)
-            return;
-
-        // 이미 커스텀 데이터가 있으면 스킵
-        if (meta.getPersistentDataContainer().has(fishTypeKey, PersistentDataType.STRING))
-            return;
-
         // 사이즈 생성 (일반 물고기: 10~50cm)
         double minSize = 10.0;
         double maxSize = 50.0;
         double size = minSize + (random.nextDouble() * (maxSize - minSize));
 
+        // ItemManager 유틸리티 사용하여 데이터 및 로어 설정
+        fish = plugin.getItemManager().setFishData(fish, size);
+
+        // 이름 접두사 등 추가 설정이 필요하면 여기서
+        ItemMeta meta = fish.getItemMeta();
         String koreanName = getKoreanFishName(type);
         meta.setDisplayName("§f" + koreanName + " (" + String.format("%.1f", size) + "cm)");
+        // fishTypeKey 설정 (보상 처리를 위해)
         meta.getPersistentDataContainer().set(fishTypeKey, PersistentDataType.STRING, type.name().toLowerCase());
-        meta.getPersistentDataContainer().set(fishSizeKey, PersistentDataType.DOUBLE, size);
-
         fish.setItemMeta(meta);
+
         caughtEntity.setItemStack(fish);
     }
 

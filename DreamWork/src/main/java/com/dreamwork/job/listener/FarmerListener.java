@@ -17,7 +17,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -173,7 +174,7 @@ public class FarmerListener implements Listener {
             } else {
                 Material harvestItem = getHarvestItem(type);
                 ItemStack item = new ItemStack(harvestItem, 1); // Fortune 적용 안 된 1개 고정 (단순화)
-                setQuality(item, quality, config);
+                setQuality(item, quality);
 
                 // Drop it
                 block.getWorld().dropItemNaturally(block.getLocation(), item);
@@ -193,24 +194,75 @@ public class FarmerListener implements Listener {
         }
     }
 
-    private void setQuality(ItemStack item, int quality, FileConfiguration config) {
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null)
+    /**
+     * 비료 주기 (Fertilizer)
+     */
+    @EventHandler
+    public void onPlayerInteract(org.bukkit.event.player.PlayerInteractEvent event) {
+        if (event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK)
             return;
 
-        String prefix = "";
-        if (quality == 2)
-            prefix = config.getString("items.quality_crops.tier_2_prefix", "§a싱싱한 ");
-        if (quality == 3)
-            prefix = config.getString("items.quality_crops.tier_3_prefix", "§6황금 ");
+        Block block = event.getClickedBlock();
+        if (block == null || block.getType() != Material.FARMLAND)
+            return;
 
-        meta.setDisplayName(prefix + getKoreanName(item.getType()));
-        meta.getPersistentDataContainer().set(qualityKey, PersistentDataType.INTEGER, quality);
-        item.setItemMeta(meta);
+        Player player = event.getPlayer();
+        ItemStack item = event.getItem();
+
+        // 뼛가루 확인
+        if (item == null || item.getType() != Material.BONE_MEAL)
+            return;
+
+        // Towny 확인
+        if (plugin.getTownyHook().isEnabled() && !plugin.getTownyHook().isInOwnTown(player, block.getLocation())) {
+            return;
+        }
+
+        // 이미 비료가 뿌려져 있는지 확인 (Metadata)
+        if (block.hasMetadata("dw_fertilized")) {
+            player.sendMessage("§c이미 비료가 뿌려져 있는 땅입니다.");
+            return;
+        }
+
+        // 비료 적용
+        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+            item.setAmount(item.getAmount() - 1);
+        }
+
+        // 메타데이터 저장 (서버 리로드 시 사라짐, 영구 저장은 PDC BlockState 필요하나 여기선 간단히)
+        block.setMetadata("dw_fertilized", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
+
+        block.getWorld().spawnParticle(org.bukkit.Particle.HEART, block.getLocation().add(0.5, 1, 0.5), 5);
+        player.playSound(block.getLocation(), org.bukkit.Sound.ITEM_BONE_MEAL_USE, 1.0f, 1.0f);
+        player.sendMessage("§a[농부] §f땅에 영양분을 공급했습니다.");
+    }
+
+    private void setQuality(ItemStack item, int quality) {
+        FileConfiguration config = plugin.getConfigManager().getJobConfig("farmer");
+        // ItemManager 유틸리티 사용하여 데이터 저장
+        plugin.getItemManager().setItemQuality(item, quality);
+
+        // 이름 변경 (접두사 적용)
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            String prefix = "";
+            if (quality == 2)
+                prefix = config.getString("items.quality_crops.tier_2_prefix", "§a싱싱한 ");
+            if (quality == 3)
+                prefix = config.getString("items.quality_crops.tier_3_prefix", "§6황금 ");
+
+            meta.setDisplayName(prefix + getKoreanName(item.getType()));
+
+            // 품질 정보 로어에 추가
+            List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+            lore.add("§7품질: " + "★".repeat(quality));
+            meta.setLore(lore);
+
+            item.setItemMeta(meta);
+        }
     }
 
     private void handleGreenThumb(Player player, Block block, Material type) {
-        FileConfiguration config = plugin.getConfigManager().getJobConfig("farmer");
         int level = plugin.getUserDataManager().getUserData(player).getJobLevel(JobType.FARMER);
 
         // Check levels
@@ -290,7 +342,7 @@ public class FarmerListener implements Listener {
                             // 메타 업데이트를 위해 setQuality 로직 재사용 (약간 변형 필요)
                             // 여기선 직접 설정
                             FileConfiguration config = plugin.getConfigManager().getJobConfig("farmer");
-                            setQuality(item, currentQuality, config);
+                            setQuality(item, currentQuality);
                             // 타임스탬프 리셋 (다음 등급으로 가기 위해)
                             meta = item.getItemMeta(); // setQuality에서 메타가 바뀌었을 수 있음
                             meta.getPersistentDataContainer().set(timestampKey, PersistentDataType.LONG, now);

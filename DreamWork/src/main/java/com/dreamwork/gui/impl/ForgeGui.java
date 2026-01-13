@@ -218,8 +218,8 @@ public class ForgeGui extends DreamGui {
             return;
         }
 
-        String itemId = plugin.getItemManager().getDreamItemId(inputItem);
-        if (!"unknown_ore".equals(itemId)) {
+        // PDC 또는 ID 기반 체크 (Provider 위임)
+        if (!provider.isUnidentified(inputItem)) {
             player.sendMessage("§c미지의 광석만 감정할 수 있습니다.");
             return;
         }

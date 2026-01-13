@@ -336,4 +336,88 @@ public class ItemManager {
     public NamespacedKey getKeyTimestamp() {
         return keyTimestamp;
     }
+
+    // ==================== PDC Utility Methods ====================
+
+    /**
+     * 아이템 품질 설정
+     */
+    public ItemStack setItemQuality(ItemStack item, int quality) {
+        if (item == null || item.getType() == Material.AIR)
+            return item;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null)
+            return item;
+
+        meta.getPersistentDataContainer().set(keyQuality, PersistentDataType.INTEGER, quality);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /**
+     * 물고기 데이터 설정
+     */
+    public ItemStack setFishData(ItemStack item, double sizeK) {
+        if (item == null || item.getType() == Material.AIR)
+            return item;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null)
+            return item;
+
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(new NamespacedKey(plugin, "dw_size"), PersistentDataType.DOUBLE, sizeK);
+        pdc.set(keyTimestamp, PersistentDataType.LONG, System.currentTimeMillis());
+
+        // 로어에 크기 표시
+        List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+        lore.add("§7크기: §f" + String.format("%.1f", sizeK) + "cm");
+        lore.add("§7잡은 시간: §f" + new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()));
+        meta.setLore(lore);
+
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /**
+     * 미감정 광석 설정
+     */
+    public ItemStack setUnidentified(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR)
+            return item;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null)
+            return item;
+
+        meta.setDisplayName("§8[ §7미감정 광석 §8]");
+        List<String> lore = new ArrayList<>();
+        lore.add("§7대장간에서 감정할 수 있습니다.");
+        meta.setLore(lore);
+
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(new NamespacedKey(plugin, "dw_unidentified"), PersistentDataType.BYTE, (byte) 1);
+
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /**
+     * 엘리트 몹 드롭 설정
+     */
+    public ItemStack setEliteMobDrop(ItemStack item, String mobType) {
+        if (item == null || item.getType() == Material.AIR)
+            return item;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null)
+            return item;
+
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(new NamespacedKey(plugin, "dw_elite_drop"), PersistentDataType.STRING, mobType);
+
+        // 시각적 효과 추가 (예: 반짝임)
+        meta.addEnchant(org.bukkit.enchantments.Enchantment.LUCK_OF_THE_SEA, 1, true);
+        meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
+
+        item.setItemMeta(meta);
+        return item;
+    }
 }

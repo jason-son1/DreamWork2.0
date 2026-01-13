@@ -12,6 +12,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 어시장 GUI
@@ -30,6 +31,7 @@ public class FishMarketGui extends DreamGui {
     // 슬롯 정의
     private static final int[] FISH_SLOTS = { 10, 11, 12, 13, 14, 15, 16 };
     private static final int SELL_ALL_BUTTON = 31;
+    private static final int PROCESS_BUTTON_SLOT = 22;
 
     // 판매 가격 배율
     private double priceMultiplier = 1.0;
@@ -49,7 +51,7 @@ public class FishMarketGui extends DreamGui {
                 if (i == slot)
                     isFishSlot = true;
             }
-            if (!isFishSlot && i != SELL_ALL_BUTTON) {
+            if (!isFishSlot && i != SELL_ALL_BUTTON && i != PROCESS_BUTTON_SLOT) {
                 inventory.setItem(i, glass);
             }
         }
@@ -65,6 +67,9 @@ public class FishMarketGui extends DreamGui {
 
         // 전체 판매 버튼
         inventory.setItem(SELL_ALL_BUTTON, createSellAllButton());
+
+        // 회 뜨기 버튼
+        inventory.setItem(PROCESS_BUTTON_SLOT, createProcessButton());
 
         // 뒤로 가기
         inventory.setItem(36, createBackButton());
@@ -101,6 +106,7 @@ public class FishMarketGui extends DreamGui {
 
         switch (slot) {
             case SELL_ALL_BUTTON -> sellAllFish();
+            case PROCESS_BUTTON_SLOT -> processSashimi();
             case 36 -> plugin.getGuiManager().openJobDetailGui(player, JobType.FISHER);
         }
     }
@@ -194,10 +200,10 @@ public class FishMarketGui extends DreamGui {
     private ItemStack createMarketTitle() {
         ItemStack item = new ItemStack(Material.AXOLOTL_BUCKET);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName("§b§l🐟 어시장 §7- 물고기 납품");
+        meta.setDisplayName("§b§l🐟 어시장 §7- 물고기 납품 & 회 뜨기");
         meta.setLore(List.of(
                 "§7물고기를 아래 슬롯에 넣고",
-                "§7판매 버튼을 눌러주세요."));
+                "§7판매 또는 회 뜨기 버튼을 눌러주세요."));
         item.setItemMeta(meta);
         return item;
     }
@@ -226,6 +232,100 @@ public class FishMarketGui extends DreamGui {
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
+    }
+
+    private ItemStack createProcessButton() {
+        ItemStack item = new ItemStack(Material.IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName("§c[ 🔪 회 뜨기 ]");
+
+        List<String> lore = new ArrayList<>();
+        lore.add("§7물고기를 손질하여 회로 만듭니다.");
+        lore.add("§7");
+        lore.add("§f결과물: 회 + 생선 뼈");
+        lore.add("§7신선도에 따라 품질이 달라집니다.");
+        lore.add("§7");
+        lore.add("§e클릭하여 가공");
+
+        meta.setLore(lore);
+        meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private void processSashimi() {
+        int processedCount = 0;
+
+        for (int slot : FISH_SLOTS) {
+            ItemStack item = inventory.getItem(slot);
+            if (item == null || item.getType().isAir() || item.getType() == Material.TROPICAL_FISH_BUCKET)
+                continue;
+
+            // 물고기 아님
+            if (getFishPrice(item) <= 0)
+                continue;
+
+            int amount = item.getAmount();
+
+            // 신선도 체크 (Timestamp)
+            long caughtTime = 0;
+            if (item.hasItemMeta()) {
+                caughtTime = item.getItemMeta().getPersistentDataContainer()
+                        .getOrDefault(plugin.getItemManager().getKeyTimestamp(),
+                                org.bukkit.persistence.PersistentDataType.LONG, 0L);
+            }
+
+            // 품질 결정 (5분 이내: 최상, 20분 이내: 상, 그 외: 보통)
+            int quality = 1;
+            if (caughtTime > 0) {
+                long elapsed = System.currentTimeMillis() - caughtTime;
+                if (elapsed < 5 * 60 * 1000)
+                    quality = 3;
+                else if (elapsed < 20 * 60 * 1000)
+                    quality = 2;
+            }
+
+            // 회 아이템 생성
+            ItemStack sashimi = new ItemStack(Material.COOKED_SALMON); // 임시 텍스처
+            // Custom Model Data나 실제 텍스처가 있다면 변경 권장
+
+            plugin.getItemManager().setItemQuality(sashimi, quality);
+            ItemMeta meta = sashimi.getItemMeta();
+            meta.setDisplayName(quality == 3 ? "§6최상급 모듬회" : (quality == 2 ? "§a신선한 모듬회" : "§f모듬회"));
+            sashimi.setItemMeta(meta);
+            sashimi.setAmount(amount);
+
+            // 부산물 (뼈) - 그냥 뼈가루로 대체
+            ItemStack bone = new ItemStack(Material.BONE_MEAL, amount);
+
+            // 원본 제거
+            inventory.setItem(slot, null);
+
+            // 결과물 지급 (인벤토리로 바로)
+            Map<Integer, ItemStack> leftOver = player.getInventory().addItem(sashimi, bone);
+            if (!leftOver.isEmpty()) {
+                for (ItemStack remain : leftOver.values()) {
+                    player.getWorld().dropItemNaturally(player.getLocation(), remain);
+                }
+                player.sendMessage("§c인벤토리가 가득 차서 바닥에 떨어졌습니다.");
+            }
+
+            processedCount += amount;
+        }
+
+        if (processedCount > 0) {
+            player.playSound(player.getLocation(), Sound.ENTITY_SHEEP_SHEAR, 1.0f, 1.0f);
+            player.sendMessage("§a물고기 " + processedCount + "마리를 손질했습니다.");
+
+            // 슬롯 초기화 (시각적)
+            for (int slot : FISH_SLOTS) {
+                if (inventory.getItem(slot) == null) {
+                    inventory.setItem(slot, createEmptyFishSlot());
+                }
+            }
+        } else {
+            player.sendMessage("§c손질할 물고기가 없습니다.");
+        }
     }
 
     private ItemStack createPriceList() {

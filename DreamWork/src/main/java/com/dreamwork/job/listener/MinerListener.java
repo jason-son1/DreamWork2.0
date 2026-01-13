@@ -62,9 +62,21 @@ public class MinerListener implements Listener {
         Player player = event.getPlayer();
         Block block = event.getBlock();
 
-        // 0. 설치된 블록인지 확인 (어뷰징 방지)
-        if (block.hasMetadata("dw_placed")) {
-            return;
+        // 0. Towny 지역 확인 (남의 땅 채굴 방지)
+        if (plugin.getTownyHook().isEnabled() && !plugin.getTownyHook().isInOwnTown(player, block.getLocation())) {
+            // 야생(Wilderness)이거나 자신의 타운이 아니면 직업 보상 미지급
+            // 단, 야생 채굴 허용 여부는 기획에 따라 다를 수 있음. 여기선 "타운 내부 방지"에 초점.
+            // 보통 남의 타운이면 BlockBreakEvent 자체가 취소되지만,
+            // 취소되지 않은 경우(권한 있음)에도 직업 exp는 주지 않으려면 체크.
+            // 기획서: "타운 내부가 아니면 ... 남의 땅에서 스킬 발동 불가"
+            // 여기서는 getTownName이 있고 자신의 타운이 아니면 리턴.
+            String townName = plugin.getTownyHook().getTownName(block.getLocation());
+            if (townName != null) {
+                // 타운 내부인데
+                if (!plugin.getTownyHook().isInOwnTown(player, block.getLocation())) {
+                    return; // 남의 타운이면 보상 없음
+                }
+            }
         }
 
         Material material = block.getType();
@@ -182,10 +194,16 @@ public class MinerListener implements Listener {
 
         if (random.nextDouble() < unknownChance) {
             ItemStack item = plugin.getItemManager().createItem("unknown_ore", 1);
-            if (item != null) {
-                player.getWorld().dropItemNaturally(player.getLocation(), item);
-                player.sendMessage("§7[광부] 미지의 광석을 발견했습니다.");
+            // Config에 unknown_ore가 없으면 기본 돌을 사용해서라도 만듦
+            if (item == null) {
+                item = new ItemStack(Material.COBBLED_DEEPSLATE);
             }
+
+            // PDC 태그 부착 (핵심 로직)
+            item = plugin.getItemManager().setUnidentified(item);
+
+            player.getWorld().dropItemNaturally(player.getLocation(), item);
+            player.sendMessage("§7[광부] 미지의 광석을 발견했습니다.");
         }
     }
 

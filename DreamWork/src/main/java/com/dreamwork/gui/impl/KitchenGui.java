@@ -197,10 +197,9 @@ public class KitchenGui extends DreamGui {
 
         // 등급별 작물로 고급 요리
         for (ItemStack item : inputs) {
-            String itemId = plugin.getItemManager().getDreamItemId(item);
-            if (itemId != null && itemId.endsWith("_3star")) {
-                // 3성 작물로 고급 요리
-                return createPremiumFood(itemId);
+            // PDC 품질 체크
+            if (plugin.getItemManager().getQuality(item) >= 3) {
+                return createPremiumFood(plugin.getItemManager().getDreamItemId(item));
             }
         }
 

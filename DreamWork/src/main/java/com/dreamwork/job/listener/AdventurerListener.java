@@ -120,43 +120,13 @@ public class AdventurerListener implements Listener {
         }
     }
 
-    private final Map<UUID, Long> lastStructureCheck = new HashMap<>();
-
     private void handlediscovery(Player player, int level) {
         // 1. 바이옴 발견
         Biome biome = player.getLocation().getBlock().getBiome();
         plugin.getMissionManager().processEvent(player, MissionType.VISIT_BIOME, biome.name(), 1);
 
-        // 2. 구조물 발견 (스로틀링: 10초)
-        long now = System.currentTimeMillis();
-        if (now - lastStructureCheck.getOrDefault(player.getUniqueId(), 0L) < 10000) {
-            return;
-        }
-        lastStructureCheck.put(player.getUniqueId(), now);
-
-        // 렉 방지를 위한 비동기 체크
-        Location loc = player.getLocation();
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                // 마을 확인
-                checkStructure(player, loc, org.bukkit.StructureType.VILLAGE, "VILLAGE");
-                // 약탈자 전초기지 확인
-                checkStructure(player, loc, org.bukkit.StructureType.PILLAGER_OUTPOST, "PILLAGER_OUTPOST");
-            } catch (Exception e) {
-                // API 오류 무시
-            }
-        });
-    }
-
-    private void checkStructure(Player player, Location loc, org.bukkit.StructureType type,
-            String missionTarget) {
-        Location targetLoc = loc.getWorld().locateNearestStructure(loc, type, 3, false);
-        if (targetLoc != null && targetLoc.distance(loc) < 50) {
-            // 발견! 메인 스레드로 동기화
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                plugin.getMissionManager().processEvent(player, MissionType.DISCOVER_STRUCTURE, missionTarget, 1);
-            });
-        }
+        // 2. 구조물 발견은 SixthSense 패시브 스킬로 이관됨 (최적화)
+        // handlediscovery에서는 바이옴만 체크함.
     }
 
     /**
