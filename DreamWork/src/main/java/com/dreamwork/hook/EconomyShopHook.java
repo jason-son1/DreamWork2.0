@@ -1,31 +1,35 @@
 package com.dreamwork.hook;
 
 import com.dreamwork.DreamWorkPlugin;
+import com.dreamwork.shop.injector.DreamShopConfig;
+import com.dreamwork.shop.injector.ShopInjector;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
 /**
- * EconomyShop 플러그인 Hook (간소화 버전)
+ * EconomyShop 플러그인 Hook (리플렉션 기반)
  * 
- * 리플렉션 기반으로 EconomyShop API를 호출하여
- * 컴파일 타임 의존성 없이 런타임에 연동합니다.
+ * 리플렉션을 사용하여 EconomyShop API를 호출합니다.
+ * 컴파일 타임 의존성 없이 런타임에 연동하여 버전 호환성을 유지합니다.
  * 
- * 실제 EconomyShop API 구조:
- * - me.antigravity.economyshop.EconomyShop (메인 플러그인)
- * - me.antigravity.economyshop.model.ShopItem, ShopSection (데이터 모델)
- * - me.antigravity.economyshop.manager.ShopManager, GUIManager (매니저)
+ * 주요 기능:
+ * - 상점 GUI 열기
+ * - 가격 조회
+ * - DreamWork 상점 주입 (ShopInjector 활용)
  * 
  * @author DreamWork Team
  */
 public class EconomyShopHook {
 
     private final DreamWorkPlugin plugin;
-    private Object economyShop; // Object로 선언하여 컴파일 의존성 방지
+    private Object economyShop;
+    private ShopInjector shopInjector;
     private boolean enabled = false;
 
     public EconomyShopHook(DreamWorkPlugin plugin) {
@@ -34,8 +38,6 @@ public class EconomyShopHook {
 
     /**
      * EconomyShop 연동 초기화
-     * 
-     * @return 성공 여부
      */
     public boolean setup() {
         if (Bukkit.getPluginManager().getPlugin("EconomyShop") == null) {
@@ -54,7 +56,7 @@ public class EconomyShopHook {
             return enabled;
 
         } catch (ClassNotFoundException e) {
-            plugin.log(Level.INFO, "EconomyShop 클래스를 찾을 수 없습니다. 상점 연동이 비활성화됩니다.");
+            plugin.log(Level.INFO, "EconomyShop 클래스를 찾을 수 없습니다.");
             return false;
         } catch (Exception e) {
             plugin.log(Level.WARNING, "EconomyShop 연동 실패: " + e.getMessage());
@@ -69,12 +71,51 @@ public class EconomyShopHook {
         return enabled && economyShop != null;
     }
 
+    // ==================== 상점 주입 관련 ====================
+
+    /**
+     * DreamWork 상점을 EconomyShop에 주입
+     */
+    public void injectShops() {
+        if (!isEnabled()) {
+            plugin.log(Level.WARNING, "EconomyShop이 비활성화되어 상점을 주입할 수 없습니다.");
+            return;
+        }
+
+        if (shopInjector == null) {
+            shopInjector = new ShopInjector(plugin);
+        }
+        shopInjector.injectAllShops();
+    }
+
+    /**
+     * 상점 리로드 (기존 제거 후 재주입)
+     */
+    public void reloadShops() {
+        if (shopInjector != null) {
+            shopInjector.unloadAllShops();
+        }
+        injectShops();
+    }
+
+    /**
+     * 상점 주입기 가져오기
+     */
+    public ShopInjector getShopInjector() {
+        return shopInjector;
+    }
+
+    /**
+     * 특정 상점 설정 가져오기
+     */
+    public DreamShopConfig getShopConfig(String sectionId) {
+        return shopInjector != null ? shopInjector.getShopConfig(sectionId) : null;
+    }
+
     // ==================== GUI 관련 ====================
 
     /**
      * 메인 상점 메뉴 열기
-     * 
-     * @param player 대상 플레이어
      */
     public void openMainMenu(Player player) {
         if (!isEnabled()) {
@@ -94,10 +135,6 @@ public class EconomyShopHook {
 
     /**
      * 특정 섹션 상점 열기
-     * 
-     * @param player    대상 플레이어
-     * @param sectionId 섹션 ID (예: "farming", "mining", "fishing")
-     * @return 성공 여부
      */
     public boolean openShop(Player player, String sectionId) {
         if (!isEnabled()) {
@@ -119,11 +156,17 @@ public class EconomyShopHook {
             }
 
             Object guiManager = economyShop.getClass().getMethod("getGuiManager").invoke(economyShop);
-            guiManager.getClass().getMethod("openShop", Player.class, section.getClass())
-                    .invoke(guiManager, player, section);
 
-            plugin.debug(player.getName() + "에게 " + sectionId + " 상점 열기");
-            return true;
+            // openShop 메서드 찾기
+            for (Method method : guiManager.getClass().getMethods()) {
+                if (method.getName().equals("openShop") && method.getParameterCount() == 2) {
+                    method.invoke(guiManager, player, section);
+                    plugin.debug(player.getName() + "에게 " + sectionId + " 상점 열기");
+                    return true;
+                }
+            }
+
+            return false;
 
         } catch (Exception e) {
             plugin.debug("상점 열기 실패: " + e.getMessage());
@@ -131,13 +174,18 @@ public class EconomyShopHook {
         }
     }
 
+    /**
+     * 직업별 상점 열기 (편의 메서드)
+     */
+    public boolean openJobShop(Player player, String jobName) {
+        String sectionId = "dw_" + jobName.toLowerCase();
+        return openShop(player, sectionId);
+    }
+
     // ==================== 가격 조회 ====================
 
     /**
-     * 아이템 판매 가격 조회 (동적 가격 지원)
-     * 
-     * @param item 아이템
-     * @return 판매 가격 (등록되지 않은 경우 -1)
+     * 아이템 판매 가격 조회
      */
     public double getSellPrice(ItemStack item) {
         if (!isEnabled() || item == null) {
@@ -159,7 +207,6 @@ public class EconomyShopHook {
                     String itemId = (String) shopItem.getClass().getMethod("getId").invoke(shopItem);
 
                     if (itemId.equalsIgnoreCase(item.getType().name())) {
-                        // 동적 가격 사용 (getCurrentSellPrice)
                         return (double) shopItem.getClass().getMethod("getCurrentSellPrice").invoke(shopItem);
                     }
                 }
@@ -172,10 +219,7 @@ public class EconomyShopHook {
     }
 
     /**
-     * 아이템 구매 가격 조회 (동적 가격 지원)
-     * 
-     * @param item 아이템
-     * @return 구매 가격 (등록되지 않은 경우 -1)
+     * 아이템 구매 가격 조회
      */
     public double getBuyPrice(ItemStack item) {
         if (!isEnabled() || item == null) {
@@ -197,7 +241,6 @@ public class EconomyShopHook {
                     String itemId = (String) shopItem.getClass().getMethod("getId").invoke(shopItem);
 
                     if (itemId.equalsIgnoreCase(item.getType().name())) {
-                        // 동적 가격 사용 (getCurrentBuyPrice)
                         return (double) shopItem.getClass().getMethod("getCurrentBuyPrice").invoke(shopItem);
                     }
                 }
@@ -211,10 +254,6 @@ public class EconomyShopHook {
 
     /**
      * 특정 섹션에서 아이템 가격 조회
-     * 
-     * @param sectionId 섹션 ID
-     * @param itemId    아이템 ID (Material 이름)
-     * @return 판매 가격 (없으면 -1)
      */
     public double getSellPrice(String sectionId, String itemId) {
         if (!isEnabled()) {
@@ -252,9 +291,6 @@ public class EconomyShopHook {
 
     /**
      * 아이템이 판매 가능한지 확인
-     * 
-     * @param item 아이템
-     * @return 판매 가능 여부
      */
     public boolean isSellable(ItemStack item) {
         return getSellPrice(item) > 0;
@@ -262,9 +298,6 @@ public class EconomyShopHook {
 
     /**
      * 섹션 존재 여부 확인
-     * 
-     * @param sectionId 섹션 ID
-     * @return 존재 여부
      */
     public boolean hasSection(String sectionId) {
         if (!isEnabled()) {
@@ -284,39 +317,9 @@ public class EconomyShopHook {
     }
 
     /**
-     * 아이템이 상점에 등록되어 있는지 확인
-     * 
-     * @param itemId 아이템 ID (Material 이름)
-     * @return 등록 여부
+     * EconomyShop 인스턴스 가져오기 (리플렉션용)
      */
-    public boolean hasShopItem(String itemId) {
-        if (!isEnabled()) {
-            return false;
-        }
-
-        try {
-            Object shopManager = economyShop.getClass().getMethod("getShopManager").invoke(economyShop);
-            Object sections = shopManager.getClass().getMethod("getSections").invoke(shopManager);
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> sectionMap = (Map<String, Object>) sections;
-
-            for (Object section : sectionMap.values()) {
-                @SuppressWarnings("unchecked")
-                List<Object> items = (List<Object>) section.getClass().getMethod("getItems").invoke(section);
-
-                for (Object shopItem : items) {
-                    String shopItemId = (String) shopItem.getClass().getMethod("getId").invoke(shopItem);
-
-                    if (shopItemId.equalsIgnoreCase(itemId)) {
-                        return true;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            plugin.debug("아이템 확인 실패: " + e.getMessage());
-        }
-
-        return false;
+    public Object getEconomyShop() {
+        return economyShop;
     }
 }

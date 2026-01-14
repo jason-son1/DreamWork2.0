@@ -209,6 +209,12 @@ public class DreamWorkPlugin extends JavaPlugin {
             economyShopHook = new EconomyShopHook(this);
             if (economyShopHook.setup()) {
                 log(Level.INFO, "EconomyShop 연동 성공!");
+
+                // DreamWork 상점 주입 (EconomyShop 완전 로드 대기 후)
+                Bukkit.getScheduler().runTaskLater(this, () -> {
+                    economyShopHook.injectShops();
+                    log(Level.INFO, "DreamWork 상점 주입 완료!");
+                }, 40L); // 2초 후 주입
             }
         }
     }
@@ -310,6 +316,12 @@ public class DreamWorkPlugin extends JavaPlugin {
         itemManager.loadItems();
         missionManager.loadMissions();
         guiManager.reload();
+
+        // EconomyShop 상점 리로드
+        if (economyShopHook != null && economyShopHook.isEnabled()) {
+            economyShopHook.reloadShops();
+            log(Level.INFO, "DreamWork 상점 리로드 완료!");
+        }
     }
 
     /**

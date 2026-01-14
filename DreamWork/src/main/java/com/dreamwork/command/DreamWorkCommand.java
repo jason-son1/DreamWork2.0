@@ -66,6 +66,9 @@ public class DreamWorkCommand implements CommandExecutor, TabCompleter {
             case "debug":
                 return handleDebug(sender, args);
 
+            case "shop":
+                return handleShop(sender, args);
+
             case "help":
             default:
                 return handleHelp(sender);
@@ -328,17 +331,86 @@ public class DreamWorkCommand implements CommandExecutor, TabCompleter {
     }
 
     /**
+     * /dw shop [직업명|admin|reload] - 상점 관련 명령어
+     */
+    private boolean handleShop(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(plugin.getConfigManager().getPrefixedMessage("general.player-only"));
+            return true;
+        }
+
+        // EconomyShop 연동 확인
+        if (plugin.getEconomyShopHook() == null || !plugin.getEconomyShopHook().isEnabled()) {
+            sender.sendMessage("§c상점 시스템이 비활성화되어 있습니다.");
+            return true;
+        }
+
+        // 인자가 없으면 메인 상점 메뉴 열기
+        if (args.length < 2) {
+            plugin.getEconomyShopHook().openMainMenu(player);
+            return true;
+        }
+
+        String shopArg = args[1].toLowerCase();
+
+        switch (shopArg) {
+            case "admin":
+                // 관리자 GUI 열기
+                if (!player.hasPermission("dreamwork.admin")) {
+                    sender.sendMessage(plugin.getConfigManager().getPrefixedMessage("general.no-permission"));
+                    return true;
+                }
+                plugin.getGuiManager().openShopAdminGui(player);
+                return true;
+
+            case "reload":
+                // 상점 리로드
+                if (!player.hasPermission("dreamwork.admin")) {
+                    sender.sendMessage(plugin.getConfigManager().getPrefixedMessage("general.no-permission"));
+                    return true;
+                }
+                plugin.getEconomyShopHook().reloadShops();
+                sender.sendMessage("§aDreamWork 상점이 리로드되었습니다.");
+                return true;
+
+            case "miner":
+            case "farmer":
+            case "fisher":
+            case "hunter":
+            case "adventurer":
+                // 직업별 상점 열기
+                if (plugin.getEconomyShopHook().openJobShop(player, shopArg)) {
+                    return true;
+                } else {
+                    sender.sendMessage("§c" + shopArg + " 상점을 열 수 없습니다.");
+                    return true;
+                }
+
+            default:
+                // 알 수 없는 상점 ID 시도
+                if (plugin.getEconomyShopHook().openShop(player, shopArg)) {
+                    return true;
+                }
+                sender.sendMessage("§c알 수 없는 상점: " + shopArg);
+                sender.sendMessage("§7사용 가능: miner, farmer, fisher, hunter, adventurer");
+                return true;
+        }
+    }
+
+    /**
      * /dw help - 도움말
      */
     private boolean handleHelp(CommandSender sender) {
         sender.sendMessage("§6===== DreamWork 명령어 =====");
         sender.sendMessage("§e/dw §7- 메인 대시보드 GUI 열기");
         sender.sendMessage("§e/dw info [플레이어] §7- 직업 정보 확인");
+        sender.sendMessage("§e/dw shop [직업명] §7- 직업별 상점 열기");
 
         if (sender.hasPermission("dreamwork.admin")) {
             sender.sendMessage("§e/dw reload §7- 설정 리로드");
             sender.sendMessage("§e/dw give <아이템ID> [수량] [플레이어] §7- 아이템 지급");
             sender.sendMessage("§e/dw setlevel <직업> <레벨> [플레이어] §7- 레벨 설정");
+            sender.sendMessage("§e/dw shop admin §7- 상점 관리 GUI 열기");
             sender.sendMessage("§e/dw debug <exp|money|check> §7- 디버그 기능");
         }
 
@@ -350,7 +422,7 @@ public class DreamWorkCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            List<String> subCommands = new ArrayList<>(List.of("help", "info"));
+            List<String> subCommands = new ArrayList<>(List.of("help", "info", "shop"));
 
             if (sender.hasPermission("dreamwork.admin")) {
                 subCommands.addAll(List.of("reload", "give", "setlevel", "debug"));
@@ -386,6 +458,18 @@ public class DreamWorkCommand implements CommandExecutor, TabCompleter {
 
                 case "debug":
                     completions = List.of("exp", "money", "check").stream()
+                            .filter(s -> s.startsWith(input))
+                            .collect(Collectors.toList());
+                    break;
+
+                case "shop":
+                    List<String> shopArgs = new ArrayList<>(
+                            List.of("miner", "farmer", "fisher", "hunter", "adventurer"));
+                    if (sender.hasPermission("dreamwork.admin")) {
+                        shopArgs.add("admin");
+                        shopArgs.add("reload");
+                    }
+                    completions = shopArgs.stream()
                             .filter(s -> s.startsWith(input))
                             .collect(Collectors.toList());
                     break;

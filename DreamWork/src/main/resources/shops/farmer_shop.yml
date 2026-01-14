@@ -1,0 +1,357 @@
+# 농부 상점 설정 (Farmer Shop)
+# DreamWork에서 정의하여 EconomyShop에 주입되는 상점
+
+section_id: "dw_farmer"
+display_name: "&a[ 농부 조합 거래소 ]"
+description: "&7농작물과 요리를 거래하는 농부 전용 상점"
+icon: DIAMOND_HOE
+permission: ""
+economy: "Vault"
+rows: 6
+
+items:
+  # === 1열: 씨앗류 ===
+  - id: "wheat_seeds"
+    material: WHEAT_SEEDS
+    name: "&f밀 씨앗"
+    lore:
+      - "&7가장 기본적인 작물 씨앗"
+      - ""
+      - "&e구매가: &f5G"
+      - "&e판매가: &f1G"
+    slot: 10
+    buy_price: 5.0
+    sell_price: 1.0
+    dynamic_pricing: false
+    max_stock: 0
+
+  - id: "carrot"
+    material: CARROT
+    name: "&6당근"
+    lore:
+      - "&7심으면 당근이 자랍니다"
+      - ""
+      - "&e구매가: &f10G"
+      - "&e판매가: &f3G"
+    slot: 11
+    buy_price: 10.0
+    sell_price: 3.0
+    dynamic_pricing: true
+    max_stock: 5000
+
+  - id: "potato"
+    material: POTATO
+    name: "&e감자"
+    lore:
+      - "&7굽거나 심을 수 있는 작물"
+      - ""
+      - "&e구매가: &f10G"
+      - "&e판매가: &f3G"
+    slot: 12
+    buy_price: 10.0
+    sell_price: 3.0
+    dynamic_pricing: true
+    max_stock: 5000
+
+  - id: "beetroot_seeds"
+    material: BEETROOT_SEEDS
+    name: "&c비트 씨앗"
+    lore:
+      - "&7붉은색 작물의 씨앗"
+      - ""
+      - "&e구매가: &f8G"
+      - "&e판매가: &f2G"
+    slot: 13
+    buy_price: 8.0
+    sell_price: 2.0
+    dynamic_pricing: false
+    max_stock: 0
+
+  - id: "melon_seeds"
+    material: MELON_SEEDS
+    name: "&a수박 씨앗"
+    lore:
+      - "&7시원한 수박을 기르세요"
+      - ""
+      - "&e구매가: &f15G"
+      - "&e판매가: &f3G"
+    slot: 14
+    buy_price: 15.0
+    sell_price: 3.0
+    dynamic_pricing: false
+    max_stock: 0
+
+  - id: "pumpkin_seeds"
+    material: PUMPKIN_SEEDS
+    name: "&6호박 씨앗"
+    lore:
+      - "&7호박 파이의 재료"
+      - ""
+      - "&e구매가: &f15G"
+      - "&e판매가: &f3G"
+    slot: 15
+    buy_price: 15.0
+    sell_price: 3.0
+    dynamic_pricing: false
+    max_stock: 0
+
+  # === 2열: 수확물 ===
+  - id: "wheat"
+    material: WHEAT
+    name: "&e밀"
+    lore:
+      - "&7빵의 기본 재료"
+      - ""
+      - "&e구매가: &f8G"
+      - "&e판매가: &f4G"
+    slot: 19
+    buy_price: 8.0
+    sell_price: 4.0
+    dynamic_pricing: true
+    max_stock: 8000
+
+  - id: "beetroot"
+    material: BEETROOT
+    name: "&c비트"
+    lore:
+      - "&7비트 수프의 재료"
+      - ""
+      - "&e구매가: &f12G"
+      - "&e판매가: &f5G"
+    slot: 20
+    buy_price: 12.0
+    sell_price: 5.0
+    dynamic_pricing: true
+    max_stock: 4000
+
+  - id: "melon_slice"
+    material: MELON_SLICE
+    name: "&a수박 조각"
+    lore:
+      - "&7시원하고 달콤한 과일"
+      - ""
+      - "&e구매가: &f5G"
+      - "&e판매가: &f2G"
+    slot: 21
+    buy_price: 5.0
+    sell_price: 2.0
+    dynamic_pricing: true
+    max_stock: 6000
+
+  - id: "pumpkin"
+    material: PUMPKIN
+    name: "&6호박"
+    lore:
+      - "&7할로윈의 상징"
+      - ""
+      - "&e구매가: &f20G"
+      - "&e판매가: &f10G"
+    slot: 22
+    buy_price: 20.0
+    sell_price: 10.0
+    dynamic_pricing: true
+    max_stock: 3000
+
+  - id: "sugar_cane"
+    material: SUGAR_CANE
+    name: "&a사탕수수"
+    lore:
+      - "&7설탕과 종이의 재료"
+      - ""
+      - "&e구매가: &f10G"
+      - "&e판매가: &f4G"
+    slot: 23
+    buy_price: 10.0
+    sell_price: 4.0
+    dynamic_pricing: true
+    max_stock: 5000
+
+  - id: "cocoa_beans"
+    material: COCOA_BEANS
+    name: "&6카카오 콩"
+    lore:
+      - "&7쿠키 제작 재료"
+      - ""
+      - "&e구매가: &f15G"
+      - "&e판매가: &f6G"
+    slot: 24
+    buy_price: 15.0
+    sell_price: 6.0
+    dynamic_pricing: true
+    max_stock: 4000
+
+  # === 3열: 고급 작물 ===
+  - id: "golden_carrot"
+    material: GOLDEN_CARROT
+    name: "&6황금 당근"
+    lore:
+      - "&7최고의 음식 중 하나"
+      - ""
+      - "&e구매가: &f100G"
+      - "&e판매가: &f50G"
+    slot: 28
+    buy_price: 100.0
+    sell_price: 50.0
+    dynamic_pricing: true
+    max_stock: 1000
+
+  - id: "golden_apple"
+    material: GOLDEN_APPLE
+    name: "&6황금 사과"
+    lore:
+      - "&7강력한 재생 효과 부여"
+      - ""
+      - "&e구매가: &f500G"
+      - "&e판매가: &f250G"
+    slot: 29
+    buy_price: 500.0
+    sell_price: 250.0
+    dynamic_pricing: true
+    max_stock: 200
+
+  - id: "apple"
+    material: APPLE
+    name: "&c사과"
+    lore:
+      - "&7기본적인 과일"
+      - ""
+      - "&e구매가: &f15G"
+      - "&e판매가: &f5G"
+    slot: 30
+    buy_price: 15.0
+    sell_price: 5.0
+    dynamic_pricing: true
+    max_stock: 4000
+
+  - id: "sweet_berries"
+    material: SWEET_BERRIES
+    name: "&c달콤한 열매"
+    lore:
+      - "&7새콤달콤한 과일"
+      - ""
+      - "&e구매가: &f8G"
+      - "&e판매가: &f3G"
+    slot: 31
+    buy_price: 8.0
+    sell_price: 3.0
+    dynamic_pricing: true
+    max_stock: 5000
+
+  - id: "glow_berries"
+    material: GLOW_BERRIES
+    name: "&e발광 열매"
+    lore:
+      - "&7빛나는 희귀 열매"
+      - ""
+      - "&e구매가: &f20G"
+      - "&e판매가: &f8G"
+    slot: 32
+    buy_price: 20.0
+    sell_price: 8.0
+    dynamic_pricing: true
+    max_stock: 2000
+
+  # === 4열: 요리 재료 및 음식 ===
+  - id: "bread"
+    material: BREAD
+    name: "&e빵"
+    lore:
+      - "&7기본적인 음식"
+      - ""
+      - "&e구매가: &f25G"
+      - "&e판매가: &f10G"
+    slot: 37
+    buy_price: 25.0
+    sell_price: 10.0
+    dynamic_pricing: true
+    max_stock: 3000
+
+  - id: "baked_potato"
+    material: BAKED_POTATO
+    name: "&e구운 감자"
+    lore:
+      - "&7든든한 한 끼"
+      - ""
+      - "&e구매가: &f20G"
+      - "&e판매가: &f8G"
+    slot: 38
+    buy_price: 20.0
+    sell_price: 8.0
+    dynamic_pricing: true
+    max_stock: 3000
+
+  - id: "pumpkin_pie"
+    material: PUMPKIN_PIE
+    name: "&6호박 파이"
+    lore:
+      - "&7맛있는 디저트"
+      - ""
+      - "&e구매가: &f50G"
+      - "&e판매가: &f20G"
+    slot: 39
+    buy_price: 50.0
+    sell_price: 20.0
+    dynamic_pricing: true
+    max_stock: 1500
+
+  - id: "cake"
+    material: CAKE
+    name: "&f케이크"
+    lore:
+      - "&7파티에 빠질 수 없는 디저트"
+      - ""
+      - "&e구매가: &f150G"
+      - "&e판매가: &f60G"
+    slot: 40
+    buy_price: 150.0
+    sell_price: 60.0
+    dynamic_pricing: true
+    max_stock: 500
+
+  # === 5열: 비료 및 도구 ===
+  - id: "bone_meal"
+    material: BONE_MEAL
+    name: "&f뼛가루"
+    lore:
+      - "&7작물 성장 촉진제"
+      - ""
+      - "&e구매가: &f10G"
+      - "&e판매가: &f3G"
+    slot: 46
+    buy_price: 10.0
+    sell_price: 3.0
+    dynamic_pricing: false
+    max_stock: 0
+
+  - id: "iron_hoe"
+    material: IRON_HOE
+    name: "&f철 괭이"
+    lore:
+      - "&7농사의 필수 도구"
+      - ""
+      - "&e구매가: &f100G"
+      - "&c판매 불가"
+    slot: 47
+    buy_price: 100.0
+    sell_price: -1
+    dynamic_pricing: false
+    max_stock: 0
+
+  - id: "composter"
+    material: COMPOSTER
+    name: "&a퇴비통"
+    lore:
+      - "&7유기물을 뼛가루로 변환"
+      - ""
+      - "&e구매가: &f50G"
+      - "&e판매가: &f15G"
+    slot: 48
+    buy_price: 50.0
+    sell_price: 15.0
+    dynamic_pricing: false
+    max_stock: 0
+
+job_exp_bonus:
+  enabled: true
+  base_exp_per_sale: 1.5
+  price_exp_ratio: 0.015

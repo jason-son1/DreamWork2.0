@@ -1,33 +1,148 @@
-title: "&0메인 대시보드"
+# =============================================
+# DreamWork 메인 대시보드 GUI 설정
+# GUI.md 계획서 기반 설계
+# =============================================
+title: "&0DreamWork : My Status"
 size: 27
 fill_item: GRAY_STAINED_GLASS_PANE
 
 items:
+  # === 직업 아이콘 (좌측) ===
   10:
-    name: "&e직업 정보"
+    id: "miner_icon"
+    name: "&6[ ⛏️ 광부 : 대지의 개척자 ]"
     material: IRON_PICKAXE
     lore:
-      - "&7현재 직업 정보를 확인합니다."
-      - "&e클릭하여 이동"
-    action: 
-      - "SOUND:UI_BUTTON_CLICK"
-      - "OPEN:job_detail"
-  12:
-    name: "&b내 정보"
-    material: PLAYER_HEAD
-    lore:
-      - "&7플레이어: &f%player%"
-      - "&7등급: &f시민"
-    action: "SOUND:UI_BUTTON_CLICK"
-  14:
-    name: "&a미션 게시판"
-    material: PAPER
-    lore:
-      - "&7수행 가능한 미션을 확인합니다."
+      - "&7레벨: &fLv.%dreamwork_miner_level%"
+      - "&7숙련도: &a%dreamwork_miner_progress_bar%"
+      - ""
+      - "&f📜 현재 미션: &e%dreamwork_miner_mission%"
+      - ""
+      - "&e클릭하여 광부 메뉴 열기"
     action:
       - "SOUND:UI_BUTTON_CLICK"
+      - "OPEN:job_detail:miner"
+
+  11:
+    id: "farmer_icon"
+    name: "&a[ 🌾 농부 : 대지의 관리자 ]"
+    material: GOLDEN_HOE
+    lore:
+      - "&7레벨: &fLv.%dreamwork_farmer_level%"
+      - "&7숙련도: &a%dreamwork_farmer_progress_bar%"
+      - ""
+      - "&e클릭하여 농부 메뉴 열기"
+    action:
+      - "SOUND:UI_BUTTON_CLICK"
+      - "OPEN:job_detail:farmer"
+
+  12:
+    id: "fisher_icon"
+    name: "&b[ 🎣 어부 : 심해의 탐구자 ]"
+    material: FISHING_ROD
+    lore:
+      - "&7레벨: &fLv.%dreamwork_fisher_level%"
+      - "&7숙련도: &a%dreamwork_fisher_progress_bar%"
+      - ""
+      - "&e클릭하여 어부 메뉴 열기"
+    action:
+      - "SOUND:UI_BUTTON_CLICK"
+      - "OPEN:job_detail:fisher"
+
+  # === 중앙 (플레이어 프로필) ===
+  13:
+    id: "profile"
+    name: "&e&l[ %player% 님의 여권 ]"
+    material: PLAYER_HEAD
+    lore:
+      - "&7DreamWork ID: &f#%player_uuid_short%"
+      - ""
+      - "&f🎖️ 시민 등급: &b%dreamwork_citizen_rank%"
+      - "&f💰 보유 자산: &e%vault_eco_balance_formatted% D"
+      - "&f🏰 소속 타운: &a%towny_town_name%"
+      - ""
+      - "&7⏲️ 접속 시간: &f%statistic_time_played%"
+      - ""
+      - "&e클릭하여 시민 등급 혜택 보기"
+    action:
+      - "SOUND:UI_BUTTON_CLICK"
+
+  # === 직업 아이콘 (우측) ===
+  14:
+    id: "hunter_icon"
+    name: "&c[ 🏹 사냥꾼 : 야생의 수호자 ]"
+    material: BOW
+    lore:
+      - "&7레벨: &fLv.%dreamwork_hunter_level%"
+      - "&7숙련도: &a%dreamwork_hunter_progress_bar%"
+      - ""
+      - "&e클릭하여 사냥꾼 메뉴 열기"
+    action:
+      - "SOUND:UI_BUTTON_CLICK"
+      - "OPEN:job_detail:hunter"
+
+  15:
+    id: "adventurer_icon"
+    name: "&d[ 🗺️ 탐험가 : 지평선의 기록자 ]"
+    material: FILLED_MAP
+    lore:
+      - "&7레벨: &fLv.%dreamwork_adventurer_level%"
+      - "&7숙련도: &a%dreamwork_adventurer_progress_bar%"
+      - ""
+      - "&e클릭하여 탐험가 메뉴 열기"
+    action:
+      - "SOUND:UI_BUTTON_CLICK"
+      - "OPEN:job_detail:adventurer"
+
+  # === 하단 기능 버튼 ===
+  21:
+    id: "rankings"
+    name: "&e[ 🏆 랭킹 및 통계 ]"
+    material: NETHER_STAR
+    lore:
+      - "&7서버 내 직업 랭킹을 확인합니다."
+      - ""
+      - "&e클릭하여 랭킹 보기"
+    action:
+      - "SOUND:UI_BUTTON_CLICK"
+
+  22:
+    id: "mission_board"
+    name: "&a[ 📋 미션 게시판 ]"
+    material: WRITABLE_BOOK
+    lore:
+      - "&7진행 중인 미션과 새로운 미션을"
+      - "&7확인합니다."
+      - ""
+      - "&f📅 일일 미션: &a%dreamwork_daily_missions_status%"
+      - "&f📅 주간 미션: &e%dreamwork_weekly_missions_status%"
+    # 완료 가능 보상이 있으면 반짝임 효과
+    glow_if: "has_claimable_mission"
+    action:
+      - "SOUND:BLOCK_AMETHYST_BLOCK_CHIME"
       - "OPEN:mission_board"
-  16:
+
+  23:
+    id: "exchange"
+    name: "&6[ ⚖️ 통합 교환소 ]"
+    material: ENDER_CHEST
+    lore:
+      - "&7각 직업의 가공소로 이동합니다."
+      - ""
+      - "&e⛏️ 대장간 &7- 광물 감정/합금"
+      - "&e🍳 주방 &7- 요리 제작"
+      - "&e🐟 어시장 &7- 물고기 손질"
+      - ""
+      - "&e클릭하여 이동"
+    action:
+      - "SOUND:UI_BUTTON_CLICK"
+      - "OPEN:exchange_menu"
+
+  # === 닫기 버튼 ===
+  26:
+    id: "close"
     name: "&c닫기"
     material: BARRIER
+    lore:
+      - "&7메뉴를 닫습니다."
     action: "CLOSE"

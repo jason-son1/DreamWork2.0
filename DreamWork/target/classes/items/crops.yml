@@ -1,7 +1,10 @@
-# 농부 (Farmer) 작물 설정
+# =============================================
+# 농부 (Farmer) 작물 및 비료 아이템 설정
+# 계획서 기반: 1~3성 등급별 작물 시스템
+# =============================================
 
 items:
-  # 밀
+  # ==================== 밀 (Wheat) ====================
   wheat_3star:
     material: WHEAT
     name: "&6[3성] 황금빛 밀"
@@ -27,7 +30,18 @@ items:
     glowing: false
     custom_model_data: 3002
 
-  # 감자
+  wheat_1star:
+    material: WHEAT
+    name: "&f[1성] 평범한 밀"
+    lore:
+      - "&7일반적인 밀입니다."
+    pdc_data:
+      type: "crop"
+      id: "wheat_1star"
+      quality: 1
+    custom_model_data: 3003
+
+  # ==================== 감자 (Potato) ====================
   potato_3star:
     material: POTATO
     name: "&6[3성] 왕 감자"
@@ -38,9 +52,115 @@ items:
       id: "potato_3star"
       quality: 3
     glowing: true
-    custom_model_data: 3003
+    custom_model_data: 3010
 
-  # 비료 아이템
+  potato_2star:
+    material: POTATO
+    name: "&e[2성] 튼실한 감자"
+    lore:
+      - "&7크기가 크고 단단한 감자입니다."
+    pdc_data:
+      type: "crop"
+      id: "potato_2star"
+      quality: 2
+    custom_model_data: 3011
+
+  potato_1star:
+    material: POTATO
+    name: "&f[1성] 평범한 감자"
+    lore:
+      - "&7일반적인 감자입니다."
+    pdc_data:
+      type: "crop"
+      id: "potato_1star"
+      quality: 1
+    custom_model_data: 3012
+
+  # ==================== 당근 (Carrot) ====================
+  carrot_3star:
+    material: CARROT
+    name: "&6[3성] 황금 당근"
+    lore:
+      - "&7달콤한 향이 가득한 최고급 당근입니다."
+    pdc_data:
+      type: "crop"
+      id: "carrot_3star"
+      quality: 3
+    glowing: true
+    custom_model_data: 3020
+
+  carrot_2star:
+    material: CARROT
+    name: "&e[2성] 달콤한 당근"
+    lore:
+      - "&7당도가 높은 당근입니다."
+    pdc_data:
+      type: "crop"
+      id: "carrot_2star"
+      quality: 2
+    custom_model_data: 3021
+
+  carrot_1star:
+    material: CARROT
+    name: "&f[1성] 평범한 당근"
+    lore:
+      - "&7일반적인 당근입니다."
+    pdc_data:
+      type: "crop"
+      id: "carrot_1star"
+      quality: 1
+    custom_model_data: 3022
+
+  # ==================== 사탕무 (Beetroot) ====================
+  beetroot_3star:
+    material: BEETROOT
+    name: "&6[3성] 진홍빛 사탕무"
+    lore:
+      - "&7색이 선명하고 당도가 높습니다."
+    pdc_data:
+      type: "crop"
+      id: "beetroot_3star"
+      quality: 3
+    glowing: true
+    custom_model_data: 3030
+
+  beetroot_2star:
+    material: BEETROOT
+    name: "&e[2성] 신선한 사탕무"
+    lore:
+      - "&7갓 수확한 신선한 사탕무입니다."
+    pdc_data:
+      type: "crop"
+      id: "beetroot_2star"
+      quality: 2
+    custom_model_data: 3031
+
+  beetroot_1star:
+    material: BEETROOT
+    name: "&f[1성] 평범한 사탕무"
+    lore:
+      - "&7일반적인 사탕무입니다."
+    pdc_data:
+      type: "crop"
+      id: "beetroot_1star"
+      quality: 1
+    custom_model_data: 3032
+
+  # ==================== 호박 (Pumpkin) ====================
+  pumpkin_3star:
+    material: PUMPKIN
+    name: "&6[3성] 거대 호박"
+    lore:
+      - "&7어른 머리만한 크기의 호박입니다."
+      - "&7파이로 만들면 환상적인 맛!"
+    pdc_data:
+      type: "crop"
+      id: "pumpkin_3star"
+      quality: 3
+    glowing: true
+    custom_model_data: 3040
+
+  # ==================== 비료 아이템 ====================
   quick_gro:
     material: BONE_MEAL
     name: "&a⚡ 속성 비료"
@@ -50,6 +170,7 @@ items:
     pdc_data:
       type: "fertilizer"
       id: "quick_gro"
+      effect: "growth_speed"
     glowing: true
     custom_model_data: 3101
 
@@ -62,5 +183,19 @@ items:
     pdc_data:
       type: "fertilizer"
       id: "quality_compost"
+      effect: "quality_boost"
     glowing: true
     custom_model_data: 3102
+
+  miracle_grow:
+    material: GOLD_NUGGET
+    name: "&d✨ 기적의 성장제"
+    lore:
+      - "&7즉시 작물을 성숙시킵니다."
+      - "&7희귀한 재료로 만든 특수 비료입니다."
+    pdc_data:
+      type: "fertilizer"
+      id: "miracle_grow"
+      effect: "instant_mature"
+    glowing: true
+    custom_model_data: 3103

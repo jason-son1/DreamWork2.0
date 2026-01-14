@@ -254,6 +254,19 @@ public class GuiManager {
     }
 
     /**
+     * 상점 관리 GUI 열기 (관리자용)
+     */
+    public void openShopAdminGui(Player player) {
+        try {
+            ShopAdminGui gui = new ShopAdminGui(plugin, player);
+            gui.open();
+        } catch (Exception e) {
+            plugin.log(Level.WARNING, "GUI 열기 실패: ShopAdmin - " + e.getMessage());
+            player.sendMessage("§c메뉴를 여는 중 오류가 발생했습니다.");
+        }
+    }
+
+    /**
      * GUI 템플릿 가져오기
      */
     public GuiTemplate getTemplate(String id) {

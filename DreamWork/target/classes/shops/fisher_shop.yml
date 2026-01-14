@@ -1,0 +1,304 @@
+# 어부 상점 설정 (Fisher Shop)
+# DreamWork에서 정의하여 EconomyShop에 주입되는 상점
+
+section_id: "dw_fisher"
+display_name: "&3[ 어부 조합 거래소 ]"
+description: "&7물고기와 낚시 용품을 거래하는 어부 전용 상점"
+icon: FISHING_ROD
+permission: ""
+economy: "Vault"
+rows: 6
+
+items:
+  # === 1열: 일반 물고기 ===
+  - id: "cod"
+    material: COD
+    name: "&f대구"
+    lore:
+      - "&7가장 흔한 물고기"
+      - ""
+      - "&e구매가: &f15G"
+      - "&e판매가: &f8G"
+    slot: 10
+    buy_price: 15.0
+    sell_price: 8.0
+    dynamic_pricing: true
+    max_stock: 6000
+
+  - id: "salmon"
+    material: SALMON
+    name: "&c연어"
+    lore:
+      - "&7강에서 잡히는 물고기"
+      - ""
+      - "&e구매가: &f20G"
+      - "&e판매가: &f12G"
+    slot: 11
+    buy_price: 20.0
+    sell_price: 12.0
+    dynamic_pricing: true
+    max_stock: 5000
+
+  - id: "tropical_fish"
+    material: TROPICAL_FISH
+    name: "&e열대어"
+    lore:
+      - "&7다양한 색상의 장식용 물고기"
+      - ""
+      - "&e구매가: &f50G"
+      - "&e판매가: &f25G"
+    slot: 12
+    buy_price: 50.0
+    sell_price: 25.0
+    dynamic_pricing: true
+    max_stock: 2000
+
+  - id: "pufferfish"
+    material: PUFFERFISH
+    name: "&e복어"
+    lore:
+      - "&7수중 호흡 물약 재료"
+      - "&c먹으면 독에 걸림!"
+      - ""
+      - "&e구매가: &f80G"
+      - "&e판매가: &f40G"
+    slot: 13
+    buy_price: 80.0
+    sell_price: 40.0
+    dynamic_pricing: true
+    max_stock: 1500
+
+  # === 2열: 조리된 생선 ===
+  - id: "cooked_cod"
+    material: COOKED_COD
+    name: "&f구운 대구"
+    lore:
+      - "&7맛있는 생선 요리"
+      - ""
+      - "&e구매가: &f25G"
+      - "&e판매가: &f15G"
+    slot: 19
+    buy_price: 25.0
+    sell_price: 15.0
+    dynamic_pricing: true
+    max_stock: 4000
+
+  - id: "cooked_salmon"
+    material: COOKED_SALMON
+    name: "&c구운 연어"
+    lore:
+      - "&7영양가 높은 요리"
+      - ""
+      - "&e구매가: &f35G"
+      - "&e판매가: &f20G"
+    slot: 20
+    buy_price: 35.0
+    sell_price: 20.0
+    dynamic_pricing: true
+    max_stock: 3000
+
+  # === 3열: 특수 물품 (낚시로 획득) ===
+  - id: "nautilus_shell"
+    material: NAUTILUS_SHELL
+    name: "&d앵무조개 껍데기"
+    lore:
+      - "&7도관 제작에 필요한 희귀 재료"
+      - ""
+      - "&e구매가: &f300G"
+      - "&e판매가: &f150G"
+    slot: 28
+    buy_price: 300.0
+    sell_price: 150.0
+    dynamic_pricing: true
+    max_stock: 500
+
+  - id: "ink_sac"
+    material: INK_SAC
+    name: "&8먹물 주머니"
+    lore:
+      - "&7검은 염료의 재료"
+      - ""
+      - "&e구매가: &f20G"
+      - "&e판매가: &f10G"
+    slot: 29
+    buy_price: 20.0
+    sell_price: 10.0
+    dynamic_pricing: true
+    max_stock: 3000
+
+  - id: "glow_ink_sac"
+    material: GLOW_INK_SAC
+    name: "&e발광 먹물 주머니"
+    lore:
+      - "&7발광 표지판 제작 재료"
+      - ""
+      - "&e구매가: &f50G"
+      - "&e판매가: &f25G"
+    slot: 30
+    buy_price: 50.0
+    sell_price: 25.0
+    dynamic_pricing: true
+    max_stock: 2000
+
+  - id: "prismarine_shard"
+    material: PRISMARINE_SHARD
+    name: "&3프리즈마린 조각"
+    lore:
+      - "&7바다 사원에서 발견되는 재료"
+      - ""
+      - "&e구매가: &f40G"
+      - "&e판매가: &f20G"
+    slot: 31
+    buy_price: 40.0
+    sell_price: 20.0
+    dynamic_pricing: true
+    max_stock: 2500
+
+  - id: "prismarine_crystals"
+    material: PRISMARINE_CRYSTALS
+    name: "&3프리즈마린 수정"
+    lore:
+      - "&7씨 랜턴 제작 재료"
+      - ""
+      - "&e구매가: &f45G"
+      - "&e판매가: &f22G"
+    slot: 32
+    buy_price: 45.0
+    sell_price: 22.0
+    dynamic_pricing: true
+    max_stock: 2500
+
+  - id: "heart_of_the_sea"
+    material: HEART_OF_THE_SEA
+    name: "&b바다의 심장"
+    lore:
+      - "&7도관의 핵심 재료"
+      - "&d매우 희귀!"
+      - ""
+      - "&e구매가: &f2000G"
+      - "&e판매가: &f1000G"
+    slot: 33
+    buy_price: 2000.0
+    sell_price: 1000.0
+    dynamic_pricing: true
+    max_stock: 50
+
+  # === 4열: 미끼 및 특수 아이템 ===
+  - id: "kelp"
+    material: KELP
+    name: "&a켈프"
+    lore:
+      - "&7바다에서 자라는 해초"
+      - ""
+      - "&e구매가: &f5G"
+      - "&e판매가: &f2G"
+    slot: 37
+    buy_price: 5.0
+    sell_price: 2.0
+    dynamic_pricing: true
+    max_stock: 6000
+
+  - id: "dried_kelp"
+    material: DRIED_KELP
+    name: "&2마른 켈프"
+    lore:
+      - "&7가벼운 간식"
+      - ""
+      - "&e구매가: &f8G"
+      - "&e판매가: &f4G"
+    slot: 38
+    buy_price: 8.0
+    sell_price: 4.0
+    dynamic_pricing: true
+    max_stock: 5000
+
+  - id: "sea_pickle"
+    material: SEA_PICKLE
+    name: "&e시 피클"
+    lore:
+      - "&7수중 조명으로 사용 가능"
+      - ""
+      - "&e구매가: &f15G"
+      - "&e판매가: &f7G"
+    slot: 39
+    buy_price: 15.0
+    sell_price: 7.0
+    dynamic_pricing: true
+    max_stock: 3000
+
+  - id: "turtle_egg"
+    material: TURTLE_EGG
+    name: "&a거북 알"
+    lore:
+      - "&7거북이를 부화시킬 수 있음"
+      - "&c함부로 밟지 마세요!"
+      - ""
+      - "&e구매가: &f200G"
+      - "&e판매가: &f100G"
+    slot: 40
+    buy_price: 200.0
+    sell_price: 100.0
+    dynamic_pricing: true
+    max_stock: 300
+
+  - id: "scute"
+    material: TURTLE_SCUTE
+    name: "&a인갑"
+    lore:
+      - "&7거북 등딱지 헬멧 제작 재료"
+      - ""
+      - "&e구매가: &f150G"
+      - "&e판매가: &f80G"
+    slot: 41
+    buy_price: 150.0
+    sell_price: 80.0
+    dynamic_pricing: true
+    max_stock: 500
+
+  # === 5열: 낚시 도구 ===
+  - id: "fishing_rod"
+    material: FISHING_ROD
+    name: "&f낚싯대"
+    lore:
+      - "&7어부의 기본 도구"
+      - ""
+      - "&e구매가: &f100G"
+      - "&e판매가: &f25G"
+    slot: 46
+    buy_price: 100.0
+    sell_price: 25.0
+    dynamic_pricing: false
+    max_stock: 0
+
+  - id: "water_bucket"
+    material: WATER_BUCKET
+    name: "&9물 양동이"
+    lore:
+      - "&7물을 담거나 물고기를 운반"
+      - ""
+      - "&e구매가: &f50G"
+      - "&e판매가: &f10G"
+    slot: 47
+    buy_price: 50.0
+    sell_price: 10.0
+    dynamic_pricing: false
+    max_stock: 0
+
+  - id: "boat"
+    material: OAK_BOAT
+    name: "&6참나무 보트"
+    lore:
+      - "&7수상 이동 수단"
+      - ""
+      - "&e구매가: &f80G"
+      - "&e판매가: &f20G"
+    slot: 48
+    buy_price: 80.0
+    sell_price: 20.0
+    dynamic_pricing: false
+    max_stock: 0
+
+job_exp_bonus:
+  enabled: true
+  base_exp_per_sale: 2.0
+  price_exp_ratio: 0.02

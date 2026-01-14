@@ -1,0 +1,292 @@
+# 광부 상점 설정 (Miner Shop)
+# DreamWork에서 정의하여 EconomyShop에 주입되는 상점
+# 서버 시작 시 자동으로 등록되며, /dw reload 시 재로드됨
+
+section_id: "dw_miner"
+display_name: "&6[ 광부 조합 거래소 ]"
+description: "&7광물과 금속을 거래하는 광부 전용 상점"
+icon: DIAMOND_PICKAXE
+permission: ""  # 빈 문자열 = 권한 제한 없음
+economy: "Vault"
+rows: 6
+
+# 상점 아이템 목록
+items:
+  # === 1열: 기본 광물 ===
+  - id: "coal"
+    material: COAL
+    name: "&f석탄"
+    lore:
+      - "&7기본적인 연료 자원"
+      - ""
+      - "&e구매가: &f10G"
+      - "&e판매가: &f5G"
+    slot: 10
+    buy_price: 10.0
+    sell_price: 5.0
+    dynamic_pricing: true
+    max_stock: 10000
+
+  - id: "raw_iron"
+    material: RAW_IRON
+    name: "&f철 원석"
+    lore:
+      - "&7제련하여 철 주괴로 만들 수 있음"
+      - ""
+      - "&e구매가: &f15G"
+      - "&e판매가: &f8G"
+    slot: 11
+    buy_price: 15.0
+    sell_price: 8.0
+    dynamic_pricing: true
+    max_stock: 8000
+
+  - id: "raw_copper"
+    material: RAW_COPPER
+    name: "&f구리 원석"
+    lore:
+      - "&7구리 블록 제작에 사용"
+      - ""
+      - "&e구매가: &f12G"
+      - "&e판매가: &f6G"
+    slot: 12
+    buy_price: 12.0
+    sell_price: 6.0
+    dynamic_pricing: true
+    max_stock: 8000
+
+  - id: "raw_gold"
+    material: RAW_GOLD
+    name: "&6금 원석"
+    lore:
+      - "&7희귀한 금속 원석"
+      - ""
+      - "&e구매가: &f50G"
+      - "&e판매가: &f25G"
+    slot: 13
+    buy_price: 50.0
+    sell_price: 25.0
+    dynamic_pricing: true
+    max_stock: 3000
+
+  # === 2열: 제련된 금속 ===
+  - id: "iron_ingot"
+    material: IRON_INGOT
+    name: "&f철 주괴"
+    lore:
+      - "&7다양한 도구와 장비 제작에 필수"
+      - ""
+      - "&e구매가: &f30G"
+      - "&e판매가: &f15G"
+    slot: 19
+    buy_price: 30.0
+    sell_price: 15.0
+    dynamic_pricing: true
+    max_stock: 5000
+
+  - id: "copper_ingot"
+    material: COPPER_INGOT
+    name: "&f구리 주괴"
+    lore:
+      - "&7피뢰침, 망원경 제작에 사용"
+      - ""
+      - "&e구매가: &f25G"
+      - "&e판매가: &f12G"
+    slot: 20
+    buy_price: 25.0
+    sell_price: 12.0
+    dynamic_pricing: true
+    max_stock: 5000
+
+  - id: "gold_ingot"
+    material: GOLD_INGOT
+    name: "&6금 주괴"
+    lore:
+      - "&7네더라이트 제작의 기반"
+      - ""
+      - "&e구매가: &f100G"
+      - "&e판매가: &f50G"
+    slot: 21
+    buy_price: 100.0
+    sell_price: 50.0
+    dynamic_pricing: true
+    max_stock: 2000
+
+  - id: "netherite_ingot"
+    material: NETHERITE_INGOT
+    name: "&d네더라이트 주괴"
+    lore:
+      - "&7최고급 장비 제작 재료"
+      - ""
+      - "&e구매가: &f5000G"
+      - "&e판매가: &f2500G"
+    slot: 22
+    buy_price: 5000.0
+    sell_price: 2500.0
+    dynamic_pricing: true
+    max_stock: 100
+
+  # === 3열: 보석류 ===
+  - id: "diamond"
+    material: DIAMOND
+    name: "&b다이아몬드"
+    lore:
+      - "&7강력한 장비와 인챈트 테이블 제작"
+      - ""
+      - "&e구매가: &f500G"
+      - "&e판매가: &f250G"
+    slot: 28
+    buy_price: 500.0
+    sell_price: 250.0
+    dynamic_pricing: true
+    max_stock: 1000
+
+  - id: "emerald"
+    material: EMERALD
+    name: "&a에메랄드"
+    lore:
+      - "&7주민과의 거래 화폐"
+      - ""
+      - "&e구매가: &f300G"
+      - "&e판매가: &f150G"
+    slot: 29
+    buy_price: 300.0
+    sell_price: 150.0
+    dynamic_pricing: true
+    max_stock: 1500
+
+  - id: "lapis_lazuli"
+    material: LAPIS_LAZULI
+    name: "&9청금석"
+    lore:
+      - "&7인챈트에 필수적인 재료"
+      - ""
+      - "&e구매가: &f20G"
+      - "&e판매가: &f10G"
+    slot: 30
+    buy_price: 20.0
+    sell_price: 10.0
+    dynamic_pricing: true
+    max_stock: 5000
+
+  - id: "redstone"
+    material: REDSTONE
+    name: "&c레드스톤"
+    lore:
+      - "&7레드스톤 회로의 기본 재료"
+      - ""
+      - "&e구매가: &f15G"
+      - "&e판매가: &f7G"
+    slot: 31
+    buy_price: 15.0
+    sell_price: 7.0
+    dynamic_pricing: true
+    max_stock: 6000
+
+  - id: "quartz"
+    material: QUARTZ
+    name: "&f석영"
+    lore:
+      - "&7네더에서 채굴되는 광물"
+      - ""
+      - "&e구매가: &f25G"
+      - "&e판매가: &f12G"
+    slot: 32
+    buy_price: 25.0
+    sell_price: 12.0
+    dynamic_pricing: true
+    max_stock: 4000
+
+  - id: "amethyst_shard"
+    material: AMETHYST_SHARD
+    name: "&d자수정 조각"
+    lore:
+      - "&7망원경과 색유리 제작 재료"
+      - ""
+      - "&e구매가: &f30G"
+      - "&e판매가: &f15G"
+    slot: 33
+    buy_price: 30.0
+    sell_price: 15.0
+    dynamic_pricing: true
+    max_stock: 3000
+
+  # === 4열: 커스텀 아이템 (DreamWork 정의) ===
+  - id: "unknown_ore"
+    dreamwork_item: "unknown_ore"
+    name: "&5미지의 광석"
+    lore:
+      - "&7무엇이 들어있는지 모르는 광석"
+      - "&7감정하면 다양한 보상을 받을 수 있음"
+      - ""
+      - "&c구매 불가"
+      - "&e판매가: &f100G"
+    slot: 37
+    buy_price: -1
+    sell_price: 100.0
+    dynamic_pricing: false
+    max_stock: 0
+
+  - id: "dream_stone"
+    dreamwork_item: "dream_stone"
+    name: "&d드림 스톤"
+    lore:
+      - "&7아주 희귀한 광물"
+      - "&7특별한 가공에 사용됨"
+      - ""
+      - "&c구매 불가"
+      - "&e판매가: &f1000G"
+    slot: 38
+    buy_price: -1
+    sell_price: 1000.0
+    dynamic_pricing: false
+    max_stock: 0
+
+  # === 5열: 도구 및 기타 ===
+  - id: "iron_pickaxe"
+    material: IRON_PICKAXE
+    name: "&f철 곡괭이"
+    lore:
+      - "&7기본적인 채굴 도구"
+      - ""
+      - "&e구매가: &f150G"
+      - "&c판매 불가"
+    slot: 46
+    buy_price: 150.0
+    sell_price: -1
+    dynamic_pricing: false
+    max_stock: 0
+
+  - id: "diamond_pickaxe"
+    material: DIAMOND_PICKAXE
+    name: "&b다이아몬드 곡괭이"
+    lore:
+      - "&7고급 채굴 도구"
+      - ""
+      - "&e구매가: &f2000G"
+      - "&c판매 불가"
+    slot: 47
+    buy_price: 2000.0
+    sell_price: -1
+    dynamic_pricing: false
+    max_stock: 0
+
+  - id: "torch"
+    material: TORCH
+    name: "&f횃불"
+    lore:
+      - "&7광산을 밝히는 필수품"
+      - ""
+      - "&e구매가: &f2G"
+      - "&e판매가: &f1G"
+    slot: 48
+    buy_price: 2.0
+    sell_price: 1.0
+    dynamic_pricing: false
+    max_stock: 0
+
+# 직업 경험치 보너스 설정 (판매 시)
+job_exp_bonus:
+  enabled: true
+  base_exp_per_sale: 1.0  # 판매 건당 기본 경험치
+  price_exp_ratio: 0.01   # 판매 금액의 1%를 경험치로
