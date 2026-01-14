@@ -49,6 +49,7 @@ public class DreamWorkPlugin extends JavaPlugin {
     private TownyHook townyHook;
     private LuckPermsHook luckPermsHook;
     private CitizensHook citizensHook;
+    private EconomyShopHook economyShopHook;
 
     // 스킬 및 리스너 참조 (상호 연결용)
     private MinerListener minerListener;
@@ -200,6 +201,14 @@ public class DreamWorkPlugin extends JavaPlugin {
             citizensHook = new CitizensHook(this);
             if (citizensHook.isEnabled()) {
                 log(Level.INFO, "Citizens 연동 성공!");
+            }
+        }
+
+        // EconomyShop 연동 (선택)
+        if (configManager.getConfig().getBoolean("hooks.economyshop-enabled", true)) {
+            economyShopHook = new EconomyShopHook(this);
+            if (economyShopHook.setup()) {
+                log(Level.INFO, "EconomyShop 연동 성공!");
             }
         }
     }
@@ -379,6 +388,10 @@ public class DreamWorkPlugin extends JavaPlugin {
 
     public CitizensHook getCitizensHook() {
         return citizensHook;
+    }
+
+    public EconomyShopHook getEconomyShopHook() {
+        return economyShopHook;
     }
 
     public boolean isDebugMode() {

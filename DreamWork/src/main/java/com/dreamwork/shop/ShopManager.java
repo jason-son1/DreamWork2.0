@@ -73,6 +73,10 @@ public class ShopManager {
      */
     public void openShop(Player player, String shopId) {
         if (!shops.containsKey(shopId)) {
+            // EconomyShop 상점 열기 시도
+            if (openEconomyShop(player, shopId)) {
+                return;
+            }
             // 일반 GUI로 열기 시도
             plugin.getGuiManager().openGui(player, shopId);
             return;
@@ -81,6 +85,31 @@ public class ShopManager {
         // 상점 전용 GUI (DynamicGui 확장)
         ShopGui gui = new ShopGui(plugin, player, shopId);
         gui.open();
+    }
+
+    /**
+     * EconomyShop 상점 열기
+     * 
+     * @param player    대상 플레이어
+     * @param sectionId 섹션 ID ("farming", "mining", "fishing" 등)
+     * @return 성공 여부
+     */
+    public boolean openEconomyShop(Player player, String sectionId) {
+        if (plugin.getEconomyShopHook() == null || !plugin.getEconomyShopHook().isEnabled()) {
+            return false;
+        }
+        return plugin.getEconomyShopHook().openShop(player, sectionId);
+    }
+
+    /**
+     * EconomyShop 메인 메뉴 열기
+     */
+    public void openEconomyShopMenu(Player player) {
+        if (plugin.getEconomyShopHook() == null || !plugin.getEconomyShopHook().isEnabled()) {
+            player.sendMessage("§c상점 시스템이 비활성화되어 있습니다.");
+            return;
+        }
+        plugin.getEconomyShopHook().openMainMenu(player);
     }
 
     /**
@@ -100,6 +129,107 @@ public class ShopManager {
 
     public ShopData getShop(String id) {
         return shops.get(id);
+    }
+
+    /**
+     * 직업 레벨에 따른 판매 보너스 배율 계산
+     * 
+     * @param player  플레이어
+     * @param jobType 직업 타입
+     * @return 보너스 배율 (예: 1.0 = 보너스 없음, 1.25 = 25% 보너스)
+     */
+    public double calculateJobSellBonus(Player player, com.dreamwork.job.JobType jobType) {
+        if (player == null || jobType == null) {
+            return 1.0;
+        }
+
+        com.dreamwork.core.UserData userData = plugin.getUserDataManager().getUserData(player.getUniqueId());
+        if (userData == null) {
+            return 1.0;
+        }
+
+        int level = userData.getJobLevel(jobType);
+        if (level <= 0) {
+            return 1.0;
+        }
+
+        // 설정에서 보너스 값 가져오기
+        String jobKey = jobType.name().toLowerCase();
+        double bonusPerLevel = plugin.getConfigManager().getConfig()
+                .getDouble("shop.job-bonuses." + jobKey + ".sell-bonus-per-level", 0.5);
+        double maxBonus = plugin.getConfigManager().getConfig()
+                .getDouble("shop.job-bonuses." + jobKey + ".max-bonus", 25.0);
+
+        double bonus = Math.min(level * bonusPerLevel, maxBonus);
+        return 1.0 + (bonus / 100.0);
+    }
+
+    /**
+     * 아이템 품질에 따른 가격 배율 계산
+     */
+    public double calculateQualityMultiplier(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) {
+            return 1.0;
+        }
+
+        org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
+        org.bukkit.persistence.PersistentDataContainer pdc = meta.getPersistentDataContainer();
+
+        // 품질 태그 확인
+        org.bukkit.NamespacedKey qualityKey = new org.bukkit.NamespacedKey(plugin, "quality");
+        if (pdc.has(qualityKey, org.bukkit.persistence.PersistentDataType.STRING)) {
+            String quality = pdc.get(qualityKey, org.bukkit.persistence.PersistentDataType.STRING);
+            return getQualityMultiplier(quality);
+        }
+
+        // 별점 시스템 확인 (농부 품질)
+        org.bukkit.NamespacedKey starsKey = new org.bukkit.NamespacedKey(plugin, "stars");
+        if (pdc.has(starsKey, org.bukkit.persistence.PersistentDataType.INTEGER)) {
+            int stars = pdc.get(starsKey, org.bukkit.persistence.PersistentDataType.INTEGER);
+            return getStarsMultiplier(stars);
+        }
+
+        return 1.0;
+    }
+
+    private double getQualityMultiplier(String quality) {
+        if (quality == null)
+            return 1.0;
+
+        org.bukkit.configuration.ConfigurationSection config = plugin.getConfigManager().getConfig()
+                .getConfigurationSection("shop.quality-multipliers");
+        if (config != null) {
+            return config.getDouble(quality.toLowerCase(), 1.0);
+        }
+
+        // 기본값
+        switch (quality.toLowerCase()) {
+            case "legendary":
+                return 3.0;
+            case "epic":
+                return 2.0;
+            case "rare":
+                return 1.5;
+            case "uncommon":
+                return 1.25;
+            default:
+                return 1.0;
+        }
+    }
+
+    private double getStarsMultiplier(int stars) {
+        switch (stars) {
+            case 5:
+                return 2.5;
+            case 4:
+                return 2.0;
+            case 3:
+                return 1.5;
+            case 2:
+                return 1.25;
+            default:
+                return 1.0;
+        }
     }
 
     // 내부 데이터 클래스

@@ -18,7 +18,6 @@
     </properties>
 
     <repositories>
-        <!-- Spigot API 저장소 -->
         <repository>
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
@@ -94,6 +93,16 @@
             <version>5.4</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+
+            <groupId>com.github.jason-son1</groupId>
+            <artifactId>EconomyShop</artifactId>
+            <version>1.0.0</version>
+
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

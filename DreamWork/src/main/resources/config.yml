@@ -99,6 +99,9 @@ hooks:
   
   # LuckPerms 연동 (레벨업 시 권한/칭호 부여)
   luckperms-enabled: true
+  
+  # EconomyShop 연동 (상점 시스템)
+  economyshop-enabled: true
 
 # 어뷰징 방지 설정
 anti-abuse:
@@ -110,3 +113,37 @@ anti-abuse:
   
   # 일일 돈 획득 상한 (0 = 제한 없음)
   daily-money-cap: 0
+
+# ============================================
+#        상점 시스템 설정.md
+# ============================================
+shop:
+  # 직업별 판매 보너스 (레벨당 %)
+  job-bonuses:
+    miner:
+      sell-bonus-per-level: 0.5  # 레벨당 0.5% 추가
+      max-bonus: 25.0            # 최대 25%
+    farmer:
+      sell-bonus-per-level: 0.5
+      max-bonus: 25.0
+    fisher:
+      sell-bonus-per-level: 0.5
+      max-bonus: 25.0
+    hunter:
+      sell-bonus-per-level: 0.5
+      max-bonus: 25.0
+    adventurer:
+      sell-bonus-per-level: 0.5
+      max-bonus: 25.0
+  
+  # 품질 등급별 가격 배율
+  quality-multipliers:
+    common: 1.0      # 일반
+    uncommon: 1.25   # 고급
+    rare: 1.5        # 희귀
+    epic: 2.0        # 영웅
+    legendary: 3.0   # 전설
+  
+  # 별점 작물 가격 배율 (농부 품질 시스템)
+  # 이 값은 코드에 하드코딩되어 있으며 참고용입니다
+  # 1성: 1.0, 2성: 1.25, 3성: 1.5, 4성: 2.0, 5성: 2.5

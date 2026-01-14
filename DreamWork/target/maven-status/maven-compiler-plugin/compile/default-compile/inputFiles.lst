@@ -34,6 +34,7 @@ E:\Minecraft\minecraft plugin\DreamWork2.0\DreamWork\src\main\java\com\dreamwork
 E:\Minecraft\minecraft plugin\DreamWork2.0\DreamWork\src\main\java\com\dreamwork\job\listener\AdventurerListener.java
 E:\Minecraft\minecraft plugin\DreamWork2.0\DreamWork\src\main\java\com\dreamwork\job\JobManager.java
 E:\Minecraft\minecraft plugin\DreamWork2.0\DreamWork\src\main\java\com\dreamwork\skill\impl\SixthSense.java
+E:\Minecraft\minecraft plugin\DreamWork2.0\DreamWork\src\main\java\com\dreamwork\shop\ShopTransactionListener.java
 E:\Minecraft\minecraft plugin\DreamWork2.0\DreamWork\src\main\java\com\dreamwork\hook\CitizensHook.java
 E:\Minecraft\minecraft plugin\DreamWork2.0\DreamWork\src\main\java\com\dreamwork\gui\impl\KitchenGui.java
 E:\Minecraft\minecraft plugin\DreamWork2.0\DreamWork\src\main\java\com\dreamwork\core\UserData.java
@@ -60,6 +61,7 @@ E:\Minecraft\minecraft plugin\DreamWork2.0\DreamWork\src\main\java\com\dreamwork
 E:\Minecraft\minecraft plugin\DreamWork2.0\DreamWork\src\main\java\com\dreamwork\item\DreamItemTemplate.java
 E:\Minecraft\minecraft plugin\DreamWork2.0\DreamWork\src\main\java\com\dreamwork\skill\impl\GreenThumb.java
 E:\Minecraft\minecraft plugin\DreamWork2.0\DreamWork\src\main\java\com\dreamwork\gui\GuiManager.java
+E:\Minecraft\minecraft plugin\DreamWork2.0\DreamWork\src\main\java\com\dreamwork\hook\EconomyShopHook.java
 E:\Minecraft\minecraft plugin\DreamWork2.0\DreamWork\src\main\java\com\dreamwork\hook\TownyHook.java
 E:\Minecraft\minecraft plugin\DreamWork2.0\DreamWork\src\main\java\com\dreamwork\job\listener\HunterListener.java
 E:\Minecraft\minecraft plugin\DreamWork2.0\DreamWork\src\main\java\com\dreamwork\gui\DreamGui.java
